@@ -1,0 +1,125 @@
+.account-card {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin: 8px;
+  transition: var(--transition, 300ms ease-in-out);
+}
+
+/* Modify hover to not affect the position of child elements */
+.account-card:hover {
+  transform: translateY(-5px);
+}
+
+.account-card__avatar-container {
+  position: relative;
+  border-radius: var(--border-radius, 50%);
+  overflow: visible;
+}
+
+.account-card__avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--border-radius, 50%);
+  box-shadow: var(--shadow, 0 3px 6px rgba(0,0,0,0.15));
+}
+
+/* Improved icon positioning to ensure it's always perfectly centered */
+.account-card__icon {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: white;
+  border-radius: 50%;
+  border: 2px solid white;
+  overflow: hidden;
+  box-shadow: var(--shadow, 0 3px 6px rgba(0,0,0,0.15));
+  
+  /* Position the icon circle relative to the avatar */
+  transform: translate(20%, 20%);
+  
+  /* Center the icon within its container using flexbox */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Set a fixed size for the icon itself */
+.account-card__icon svg {
+  width: 60%;
+  height: 60%;
+  min-width: 0; /* Prevent SVG from overflowing */
+  min-height: 0; /* Prevent SVG from overflowing */
+}
+
+/* Ensure the icon itself is centered and SMALLER */
+.account-card__icon svg,
+.account-card__icon img {
+  width: 50%;  /* Reduced from 65% to 50% */
+  height: 50%; /* Reduced from 65% to 50% */
+  display: block;
+  margin: auto;
+}
+
+/* Updated tooltip positioning to appear above */
+.account-card__tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--tooltip-bg, white);
+  color: var(--tooltip-color, black);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  white-space: nowrap;
+  z-index: 10;
+  box-shadow: var(--tooltip-shadow, 0 2px 4px rgba(0,0,0,0.12));
+  pointer-events: none;
+}
+
+/* Updated arrow to point downward */
+.account-card__tooltip::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--tooltip-bg, white);
+}
+
+/* Size variations with adjusted icon sizes */
+.account-card--sm .account-card__avatar-container {
+  width: 48px;
+  height: 48px;
+}
+
+.account-card--sm .account-card__icon {
+  width: 16px;
+  height: 16px;
+}
+
+.account-card--md .account-card__avatar-container {
+  width: 64px;
+  height: 64px;
+}
+
+.account-card--md .account-card__icon {
+  width: 20px;
+  height: 20px;
+}
+
+.account-card--lg .account-card__avatar-container {
+  width: 80px;
+  height: 80px;
+}
+
+.account-card--lg .account-card__icon {
+  width: 24px;
+  height: 24px;
+}

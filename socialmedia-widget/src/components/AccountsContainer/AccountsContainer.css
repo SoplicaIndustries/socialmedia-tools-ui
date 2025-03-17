@@ -1,0 +1,77 @@
+.accounts-container-wrapper {
+  width: 100%;
+  position: relative;
+  background-color: var(--container-bg, white);
+  border-radius: var(--border-radius, 12px);
+  padding: var(--padding, 16px);
+  box-shadow: var(--shadow, 0 1px 3px rgba(0,0,0,0.12));
+}
+
+.accounts-container__title {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 1.25rem;
+}
+
+/* On mobile: single row with horizontal scroll */
+.accounts-container {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch; /* smooth scrolling for iOS */
+  scrollbar-width: thin; /* Firefox */
+}
+
+/* Hide scrollbar for Chrome/Safari/Opera */
+.accounts-container::-webkit-scrollbar {
+  height: 4px;
+}
+
+.accounts-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+.accounts-container::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+
+/* Scroll indicator */
+.accounts-container__scroll-indicator {
+  position: absolute;
+  right: var(--padding, 16px);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.5);
+  animation: pulse 2s infinite;
+}
+
+.accounts-container__scroll-indicator svg {
+  margin-left: 4px;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+/* On larger screens: display in grid */
+@media (min-width: var(--expand-breakpoint, 768px)) {
+  .accounts-container {
+    display: grid;
+    grid-template-columns: repeat(var(--items-per-row, 5), 1fr);
+    grid-template-rows: repeat(var(--max-rows, 1), auto);
+    gap: 16px;
+    overflow-x: visible;
+  }
+  
+  .accounts-container__scroll-indicator {
+    display: none;
+  }
+}
