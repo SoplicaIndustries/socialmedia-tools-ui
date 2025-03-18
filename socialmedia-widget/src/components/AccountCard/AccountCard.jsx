@@ -13,30 +13,34 @@ const AccountCard = ({
   platform, 
   tooltipText,
   onClick,
-  size = 'md'
+  size = 'md',
+  isSelected,
+  onCardClick
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const theme = useTheme();
+  const [selected, setSelected] = useState(isSelected || false);
   
   // Default avatar if none provided
   const avatarSrc = avatar || 'https://via.placeholder.com/100';
 
-  // Get appropriate icon size based on card size
-  const getIconSize = () => {
-    switch(size) {
-      case 'sm': return 10;
-      case 'lg': return 14;
-      case 'md':
-      default: return 12;
+  const handleClick = () => {
+    setSelected(!selected);
+    if (onCardClick) {
+      onCardClick();
+    } else if (onClick) {
+      onClick();
+    } else {
+      alert(`Clicked on ${name || 'AccountCard'}`);
     }
   };
 
   return (
     <div 
-      className={`account-card account-card--${size}`}
+      className={`account-card account-card--${size} ${selected ? 'account-card--selected' : ''}`}
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
-      onClick={onClick}
+      onClick={handleClick}
       style={{
         '--shadow': theme.shadows.md,
         '--border-radius': theme.borderRadius.full,
@@ -55,11 +59,7 @@ const AccountCard = ({
             backgroundColor: getPlatformColor(platform, theme)
           }}
         >
-          <SocialIcon 
-            platform={platform || 'default'} 
-            color="#FFFFFF"
-            size={getIconSize()}
-          />
+          <SocialIcon platform={platform || 'default'} color="#FFFFFF" />
         </div>
       </div>
       
@@ -100,7 +100,9 @@ AccountCard.propTypes = {
   platform: PropTypes.oneOf([...availablePlatforms(), 'default']),
   tooltipText: PropTypes.string,
   onClick: PropTypes.func,
-  size: PropTypes.oneOf(['sm', 'md', 'lg'])
+  size: PropTypes.oneOf(['sm', 'md', 'lg']),
+  isSelected: PropTypes.bool,
+  onCardClick: PropTypes.func
 };
 
 export default AccountCard;
