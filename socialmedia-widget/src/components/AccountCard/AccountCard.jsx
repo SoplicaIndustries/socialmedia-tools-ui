@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import './AccountCard.css';
 import { useTheme } from '../../theme/ThemeContext';
@@ -7,7 +7,7 @@ import SocialIcon, { availablePlatforms } from '../SocialIcons';
 /**
  * AccountCard component displays a circular avatar with a social media icon
  */
-const AccountCard = ({ 
+const AccountCard = React.memo(({ 
   avatar, 
   name, 
   platform, 
@@ -15,23 +15,39 @@ const AccountCard = ({
   onClick,
   size = 'md',
   isSelected,
-  onCardClick
+  onCardClick,
+  id
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const theme = useTheme();
   const [selected, setSelected] = useState(isSelected || false);
   
+  // Update selected state when isSelected prop changes
+  useEffect(() => {
+    setSelected(isSelected || false);
+  }, [isSelected]);
+  
   // Default avatar if none provided
   const avatarSrc = avatar || 'https://via.placeholder.com/100';
 
-  const handleClick = () => {
-    setSelected(!selected);
+  // Define default behavior for the card click
+  const defaultClickHandler = () => {
+    alert(`Clicked on ${name || 'AccountCard'}`);
+  };
+
+  // Handle click with priority: onCardClick > onClick > defaultClickHandler
+  const handleClick = (e) => {
+    // If we're in a selectable container, onCardClick will handle the selection
     if (onCardClick) {
-      onCardClick();
-    } else if (onClick) {
-      onClick();
+      onCardClick(e);
+      return; // Don't execute other handlers when in selection mode
+    }
+    
+    // Use the provided onClick handler or fall back to default
+    if (onClick) {
+      onClick(e);
     } else {
-      alert(`Clicked on ${name || 'AccountCard'}`);
+      defaultClickHandler(e);
     }
   };
 
@@ -44,7 +60,8 @@ const AccountCard = ({
       style={{
         '--shadow': theme.shadows.md,
         '--border-radius': theme.borderRadius.full,
-        '--transition': theme.transitions.normal
+        '--transition': theme.transitions.normal,
+        '--primary-color': theme.colors.primary
       }}
     >
       <div className="account-card__avatar-container">
@@ -77,7 +94,7 @@ const AccountCard = ({
       )}
     </div>
   );
-};
+});
 
 /**
  * Get brand color for social platform
@@ -102,7 +119,8 @@ AccountCard.propTypes = {
   onClick: PropTypes.func,
   size: PropTypes.oneOf(['sm', 'md', 'lg']),
   isSelected: PropTypes.bool,
-  onCardClick: PropTypes.func
+  onCardClick: PropTypes.func,
+  id: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
 };
 
 export default AccountCard;

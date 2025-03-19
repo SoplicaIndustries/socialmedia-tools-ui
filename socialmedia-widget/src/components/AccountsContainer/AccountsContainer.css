@@ -75,3 +75,41 @@
     display: none;
   }
 }
+
+.accounts-container-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.edit-button,
+.remove-account-button {
+  background-color: #f0f0f0;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.edit-button:hover,
+.remove-account-button:hover {
+  background-color: #ddd;
+}
+
+.remove-account-button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background-color: rgba(255, 0, 0, 0.7);
+  color: white;
+}
+
+.remove-account-button:hover {
+  background-color: rgba(255, 0, 0, 0.9);
+}
+
+.account-card-wrapper {
+  position: relative;
+}

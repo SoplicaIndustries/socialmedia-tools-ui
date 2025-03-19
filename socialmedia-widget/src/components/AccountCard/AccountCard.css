@@ -7,6 +7,7 @@
   cursor: pointer;
   margin: 8px;
   transition: var(--transition, 300ms ease-in-out);
+  transform-origin: center bottom;
 }
 
 /* Modify hover to not affect the position of child elements */
@@ -18,6 +19,8 @@
   position: relative;
   border-radius: var(--border-radius, 50%);
   overflow: visible;
+  border: 3px solid transparent; /* Add a transparent border */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease; /* Add transition */
 }
 
 .account-card__avatar {
@@ -121,6 +124,34 @@
 }
 
 .account-card--selected {
-  border: 2px solid var(--primary-color, blue);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  /* Remove border and shadow from the main container */
+  transform: none; /* Don't scale the entire card */
+}
+
+.account-card--selected .account-card__avatar-container {
+  border: 3px solid var(--primary-color, blue);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Add a backglow */
+  /* Use a transform that affects only the appearance, not the layout */
+  position: relative;
+  z-index: 1;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease; /* Add transition */
+}
+
+/* Create a pseudo-element for the glow effect instead of scaling */
+.account-card--selected .account-card__avatar-container::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  background: transparent;
+  z-index: -1;
+  animation: pulse 1.5s infinite alternate;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 5px 2px rgba(var(--primary-color-rgb, 0, 0, 255), 0.4); }
+  100% { box-shadow: 0 0 8px 4px rgba(var(--primary-color-rgb, 0, 0, 255), 0.6); }
 }
