@@ -105,7 +105,9 @@ function getPlatformColor(platform = '', theme) {
     instagram: '#E4405F',
     tiktok: '#000000',
     linkedin: '#0A66C2',
-    youtube: '#FF0000'
+    youtube: '#FF0000',
+    twitter: '#1DA1F2',
+    x: '#1DA1F2'
   };
 
   return platformColors[platform.toLowerCase()] || theme.colors.primary;

@@ -1,0 +1,178 @@
+/// Mixin to put items on a circle
+/// @param {Integer} $nb-items - Number or items
+/// @param {Length} $circle-size - Container size
+/// @param {Length} $item-size - Item size
+/// @param {String | false} $class-for-IE - Base class name for old IE
+@mixin distribute-on-circle( 
+  $nb-items,
+  $circle-size,
+  $item-size,
+  $class-for-IE: false
+) {
+  $half-item: ($item-size / 2);
+  $half-parent: ($circle-size / 2);
+  
+  position: relative; /* 1 */
+  width:  $circle-size;
+  height: $circle-size;
+  padding: 0;
+  border-radius: 50%; 
+  list-style: none; /* 2 */ 
+  box-sizing: content-box; /* 3 */ 
+  
+  > * { /* 4 */
+    display: block;
+    position: absolute;
+    top:  50%; 
+    left: 50%;
+    width:  $item-size;
+    height: $item-size;
+    margin: -$half-item;
+  }
+  
+  $angle: (360 / $nb-items);
+  $rot: 0;
+
+  @for $i from 1 through $nb-items {
+    @if not $class-for-IE {
+      > :nth-of-type(#{$i}) {
+        transform: rotate($rot * 1deg) translate($half-parent) rotate($rot * -1deg);
+      }
+    } @else {
+      > .#{$class-for-IE}#{$i} {
+        // If CSS transforms are not supported
+        $mt: sin($rot * pi() / 180) * $half-parent - $half-item;
+        $ml: cos($rot * pi() / 180) * $half-parent - $half-item;
+        margin: $mt 0 0 $ml;
+      }
+    }
+
+    $rot: ($rot + $angle);
+  }
+}
+
+.add-button-wrapper {
+  position: relative;
+  z-index: 102;
+}
+
+// Button styling
+.add-account-button-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin: 8px;
+}
+
+.add-account-button {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: var(--container-bg, white);
+  border: 2px dashed var(--primary-color, blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: rgba(0, 0, 255, 0.05);
+  }
+}
+
+.plus-icon {
+  font-size: 32px;
+  font-weight: bold;
+  color: var(--primary-color, blue);
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.add-account-label {
+  font-size: 14px;
+  color: var(--primary-color, blue);
+}
+
+// Circle menu styling
+.platform-circle-container {
+  @include distribute-on-circle(5, 180px, 50px, false);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  z-index: 102;
+  pointer-events: none;
+}
+
+.platform-item {
+  background-color: transparent;
+  border: 2px solid var(--primary-color, blue);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  pointer-events: auto;
+  z-index: 105;
+  animation: fadeInCircle 0.3s forwards;
+  
+  &:hover {
+    background-color: var(--primary-color, blue);
+    transform: scale(1.15);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+    
+    .platform-icon-wrapper svg {
+      color: white;
+    }
+  }
+}
+
+.platform-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  
+  svg {
+    width: 24px;
+    height: 24px;
+    color: var(--primary-color, blue);
+    transition: color 0.3s ease;
+  }
+}
+
+// Menu open styles
+.menu-open {
+  .add-account-button {
+    background-color: var(--primary-color, blue);
+    border: none;
+    box-shadow: 0 0 15px rgba(0, 0, 255, 0.3);
+    z-index: 103;
+    
+    .plus-icon {
+      color: white;
+      transform: rotate(45deg);
+    }
+  }
+  
+  .add-account-label {
+    font-weight: bold;
+  }
+}
+
+@keyframes fadeInCircle {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

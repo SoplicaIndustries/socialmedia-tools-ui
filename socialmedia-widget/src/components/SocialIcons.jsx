@@ -4,8 +4,9 @@ import {
   FaTiktok, 
   FaLinkedin, 
   FaYoutube,
+  FaXTwitter,
   FaGlobe
-} from 'react-icons/fa';
+} from 'react-icons/fa6';
 import PropTypes from 'prop-types';
 
 /**
@@ -17,6 +18,8 @@ const platformIcons = {
   tiktok: FaTiktok,
   linkedin: FaLinkedin,
   youtube: FaYoutube,
+  twitter: FaXTwitter,
+  x: FaXTwitter,
   default: FaGlobe
 };
 
@@ -42,7 +45,7 @@ export function SocialIcon({ platform, color, size }) {
 }
 
 SocialIcon.propTypes = {
-  platform: PropTypes.oneOf(['facebook', 'instagram', 'tiktok', 'linkedin', 'youtube', 'default']).isRequired,
+  platform: PropTypes.oneOf(['facebook', 'instagram', 'tiktok', 'linkedin', 'youtube', 'twitter', 'x', 'default']).isRequired,
   color: PropTypes.string,
   size: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
 };

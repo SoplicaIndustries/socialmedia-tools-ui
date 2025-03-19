@@ -1,0 +1,225 @@
+/* Root element positioning */
+.add-button-wrapper {
+  position: relative;
+  z-index: 102;
+  margin: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Button wrapper */
+.add-account-button-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* Button element */
+.add-account-button {
+  width: var(--button-size, 64px);
+  height: var(--button-size, 64px);
+  border-radius: 50%;
+  background-color: var(--container-bg, white);
+  border: 2px dashed var(--primary-color, blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* Size variants for the button */
+.add-button-wrapper--sm .add-account-button {
+  --button-size: 44px;
+}
+
+.add-button-wrapper--md .add-account-button {
+  --button-size: 58px;
+}
+
+.add-button-wrapper--lg .add-account-button {
+  --button-size: 72px;
+}
+
+.add-account-button:hover {
+  background-color: rgba(0, 0, 255, 0.05);
+}
+
+/* Plus/X icon */
+.plus-icon {
+  font-size: calc(var(--button-size, 64px) * 0.5);
+  font-weight: bold;
+  color: var(--primary-color, blue);
+  transition: color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  line-height: 1;
+  text-align: center;
+}
+
+/* Label text */
+.add-account-label {
+  font-size: 14px;
+  color: var(--primary-color, blue);
+  position: relative;
+  z-index: 106;
+  font-weight: 500;
+  text-shadow: 0px 0px 2px rgba(255, 255, 255, 0.8);
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 4px;
+  transition: opacity 0.3s ease;
+}
+
+/* Hide label when menu is open */
+.menu-open .add-account-label {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Circle Container - using the distribute-on-circle pattern */
+.platform-circle-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--circle-size, 200px);
+  height: var(--circle-size, 200px);
+  margin-top: calc(-1 * var(--circle-size, 200px) / 2 - 15px); /* Adjust for label */
+  margin-left: calc(-1 * var(--circle-size, 200px) / 2);
+  padding: 0;
+  list-style: none;
+  z-index: 102;
+  box-sizing: content-box;
+}
+
+/* Platform item buttons - general styling */
+.platform-item {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--item-size, 60px);
+  height: var(--item-size, 60px);
+  margin-top: calc(-1 * var(--item-size, 60px) / 2);
+  margin-left: calc(-1 * var(--item-size, 60px) / 2);
+  border-radius: 50%;
+  border: 2px solid var(--platform-color, var(--primary-color, blue));
+  background-color: var(--platform-color, var(--primary-color, blue));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  pointer-events: auto;
+  animation: fadeInCircle 0.3s forwards;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Position classes adjusted for exactly 6 items - 60 degrees apart */
+.platform-item:nth-child(1) { transform: rotate(0deg) translate(var(--translate-distance, 100px)) rotate(0deg); }
+.platform-item:nth-child(2) { transform: rotate(60deg) translate(var(--translate-distance, 100px)) rotate(-60deg); }
+.platform-item:nth-child(3) { transform: rotate(120deg) translate(var(--translate-distance, 100px)) rotate(-120deg); }
+.platform-item:nth-child(4) { transform: rotate(180deg) translate(var(--translate-distance, 100px)) rotate(-180deg); }
+.platform-item:nth-child(5) { transform: rotate(240deg) translate(var(--translate-distance, 100px)) rotate(-240deg); }
+.platform-item:nth-child(6) { transform: rotate(300deg) translate(var(--translate-distance, 100px)) rotate(-300deg); }
+
+/* Remove unused positions */
+/*
+.platform-item:nth-child(7) { transform: rotate(270deg) translate(var(--translate-distance, 100px)) rotate(-270deg); }
+.platform-item:nth-child(8) { transform: rotate(315deg) translate(var(--translate-distance, 100px)) rotate(-315deg); }
+*/
+
+/* Platform icon styling */
+.platform-item .platform-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 12px;
+}
+
+.platform-item .platform-icon-wrapper svg {
+  width: 22px;
+  height: 22px;
+  color: white;
+  transition: color 0.3s ease;
+}
+
+/* Hover effects */
+.platform-item:hover {
+  background-color: white;
+  box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+}
+
+.platform-item:hover .platform-icon-wrapper svg {
+  color: var(--platform-color, var(--primary-color, blue));
+}
+
+/* Menu open styles */
+.menu-open .add-account-button {
+  background-color: var(--primary-color, blue);
+  border: 2px solid var(--primary-color, blue);
+  box-shadow: 0 0 15px rgba(0, 0, 255, 0.3);
+  z-index: 103;
+  margin-bottom: 0; /* Remove bottom margin when menu open to compensate for hidden label */
+}
+
+.menu-open .add-account-button .plus-icon {
+  color: white;
+}
+
+.menu-open .add-account-label {
+  font-weight: bold;
+}
+
+/* Overlay styling */
+.local-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--overlay-size, 300px);
+  height: var(--overlay-size, 300px);
+  transform: translate(-50%, -50%);
+  margin-top: -15px; /* Adjust for label */
+  background: radial-gradient(
+    circle,
+    rgba(0, 0, 0, 0.35) 10%,
+    rgba(0, 0, 0, 0.25) 30%,
+    rgba(0, 0, 0, 0.15) 50%,
+    rgba(0, 0, 0, 0.08) 70%,
+    rgba(0, 0, 0, 0.03) 85%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  backdrop-filter: blur(1.5px);
+  -webkit-backdrop-filter: blur(1.5px);
+  border-radius: 9999px;
+  z-index: 100;
+  pointer-events: auto;
+  transition: opacity 0.4s ease;
+}
+
+/* Animation */
+@keyframes fadeInCircle {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+  }
+}

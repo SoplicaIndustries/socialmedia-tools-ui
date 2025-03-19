@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import './AccountsContainer.css';
 import { useTheme } from '../../theme/ThemeContext';
-import SocialIcon, { availablePlatforms } from '../SocialIcons';
+import AddAccountButton from './AddAccountButton';
 
 /**
  * AccountsContainer component displays a scrollable/expandable container for AccountCard components
@@ -19,13 +19,15 @@ const AccountsContainer = ({
   onAccountAdd = null,
   onAccountRemove = null,
   showAddButton = false,
-  scrollable = false // When true, horizontal scroll; when false, wrap to next line
+  scrollable = false, // When true, horizontal scroll; when false, wrap to next line
+  size = 'md' // Add size prop with default value 'md'
 }) => {
   const containerRef = useRef(null);
   const [isScrollable, setIsScrollable] = useState(false);
   const theme = useTheme();
   const [selectedChildren, setSelectedChildren] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
   
   // Check if container is scrollable
   useEffect(() => {
@@ -83,11 +85,16 @@ const AccountsContainer = ({
     }
   };
 
-  const handleAddAccount = () => {
-    if (onAccountAdd) {
-      onAccountAdd();
-    } else {
-      alert('Add new account');
+  const handleAddAccount = (platform = null) => {
+    if (platform) {
+      // If a specific platform is selected
+      if (onAccountAdd) {
+        onAccountAdd(platform);
+      } else {
+        alert(`Add new ${platform} account`);
+      }
+      // Close the menu after selection
+      setIsAddMenuOpen(false);
     }
   };
 
@@ -122,22 +129,31 @@ const AccountsContainer = ({
     // Add "Add Account" button if showAddButton is true
     if (showAddButton) {
       clonedChildren.push(
-        <div key="add-account" className="account-card-wrapper">
-          <div 
-            className="add-account-button-wrapper"
-            onClick={handleAddAccount}
-          >
-            <div className="add-account-button">
-              <span className="plus-icon">+</span>
-            </div>
-            <span className="add-account-label">Add Account</span>
-          </div>
-        </div>
+        <AddAccountButton 
+          key="add-account"
+          isMenuOpen={isAddMenuOpen}
+          onToggleMenu={() => setIsAddMenuOpen(!isAddMenuOpen)}
+          onSelectPlatform={handleAddAccount}
+          size={size} // Pass the component's size prop to AddAccountButton
+        />
       );
     }
 
     return clonedChildren;
-  }, [children, selectable, selectedChildren, handleCardClick, isEditing, editable, onAccountRemove, onAccountAdd, theme, showAddButton]);
+  }, [
+    children, 
+    selectable, 
+    selectedChildren, 
+    handleCardClick, 
+    isEditing, 
+    editable, 
+    onAccountRemove, 
+    onAccountAdd,
+    theme, 
+    showAddButton,
+    isAddMenuOpen,
+    size // Add size to dependency array
+  ]);
 
   // Generate CSS variables for the component
   const containerStyle = {
@@ -157,15 +173,17 @@ const AccountsContainer = ({
   }`;
 
   return (
-    <div className="accounts-container-wrapper" style={containerStyle}>
+    <div className={`accounts-container-wrapper ${isAddMenuOpen ? 'menu-open' : ''}`} style={containerStyle}>
       <div className="accounts-container-header">
         {editable && (
           <div 
             className={`edit-button-container ${isEditing ? 'editing-active' : ''}`}
             onClick={() => setIsEditing(!isEditing)}
           >
-            <span className="edit-icon">✏️</span>
-            <span className="edit-text">{isEditing ? 'Done Editing' : 'Edit'}</span>
+            <span className="edit-icon">
+              {isEditing ? '✓' : '✎'} {/* Unicode edit icon */}
+            </span>
+            <span className="edit-text">{isEditing ? 'Done' : 'Edit'}</span>
           </div>
         )}
         {title && <h3 className="accounts-container__title">{title}</h3>}
@@ -178,6 +196,8 @@ const AccountsContainer = ({
       <div className={containerClass} ref={containerRef}>
         {renderedChildren}
       </div>
+      
+      {/* Background overlay when add menu is open */}
       
       {scrollable && isScrollable && (
         <div className="accounts-container__scroll-indicator">
@@ -202,7 +222,8 @@ AccountsContainer.propTypes = {
   onAccountAdd: PropTypes.func,
   onAccountRemove: PropTypes.func,
   showAddButton: PropTypes.bool,
-  scrollable: PropTypes.bool // Replace displayMode with scrollable
+  scrollable: PropTypes.bool,
+  size: PropTypes.oneOf(['sm', 'md', 'lg']) // Add size to PropTypes
 };
 
 export default AccountsContainer;

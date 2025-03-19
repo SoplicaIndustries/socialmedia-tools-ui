@@ -35,8 +35,23 @@ function App() {
     });
   };
 
-  const handleAccountAdd = () => {
-    alert('Add new account');
+  const handleAccountAdd = (platform) => {
+    // Generate a new unique ID for the account
+    const newId = Math.max(...accounts.map(a => a.id), 0) + 1;
+    
+    // Create a new account based on the selected platform
+    const newAccount = {
+      id: newId,
+      name: `New ${platform ? platform.charAt(0).toUpperCase() + platform.slice(1) : ''} Account`,
+      platform: platform || 'default',
+      tooltipText: `New ${platform ? platform.charAt(0).toUpperCase() + platform.slice(1) : ''} Account`
+    };
+    
+    // Add the new account to the list
+    setAccounts([...accounts, newAccount]);
+    
+    // Alert the user
+    alert(`Added new ${platform || ''} account!`);
   };
 
   const handleAccountRemove = (accountId) => {

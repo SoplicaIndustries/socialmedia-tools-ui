@@ -199,7 +199,7 @@
   color: var(--primary-color, blue);
 }
 
-/* Simplified edit button - horizontal layout with no border */
+/* Simplified edit button with consistent colors */
 .edit-button-container {
   display: flex;
   flex-direction: row;
@@ -215,13 +215,9 @@
 }
 
 .edit-icon {
-  font-size: 18px;
+  font-size: 16px;
   margin-right: 8px;
   color: var(--primary-color, blue);
-  width: auto;
-  height: auto;
-  background-color: transparent;
-  border: none;
 }
 
 .edit-text {
@@ -230,7 +226,9 @@
   color: var(--primary-color, blue);
 }
 
-.editing-active .edit-text {
+.editing-active .edit-text,
+.editing-active .edit-icon {
+  color: #e53935; /* Red color when active for both text and icon */
   font-weight: bold;
 }
 
@@ -239,4 +237,87 @@
 .edit-account-button,
 .edit-account-label {
   display: none;
+}
+
+/* Overlay background */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+}
+
+/* Container with active overlay */
+.accounts-container-wrapper.overlay-active {
+  position: relative;
+  z-index: 101;
+}
+
+/* Add button wrapper */
+.add-button-wrapper {
+  position: relative;
+  z-index: 102;
+}
+
+/* Remove platform selector and related styles as they're now in AddAccountButton.scss */
+
+/* Center add button styling when menu is open */
+.menu-open .add-account-button {
+  background-color: var(--primary-color, blue);
+  border: none;
+  box-shadow: 0 0 15px rgba(0, 0, 255, 0.3);
+  z-index: 103;
+}
+
+.menu-open .add-account-button .plus-icon {
+  color: white;
+  transform: rotate(45deg);
+}
+
+/* Center add button styling when menu is open */
+.menu-open .add-account-button {
+  background-color: var(--primary-color, blue);
+  border: none;
+  transform: scale(1.1);
+  z-index: 103;
+}
+
+.menu-open .add-account-button .plus-icon {
+  color: white;
+}
+
+.menu-open .add-account-label {
+  font-weight: bold;
+}
+
+/* Mixin to distribute items evenly on a circle */
+@mixin distribute-on-circle($nb-items, $circle-size, $item-size) {
+  $half-item: ($item-size / 2);
+  $half-parent: ($circle-size / 2);
+  position: relative;
+  width: $circle-size;
+  height: $circle-size;
+  padding: 0;
+  border-radius: 50%;
+  box-sizing: content-box;
+  > * {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: $item-size;
+    height: $item-size;
+    margin: -$half-item;
+  }
+  $angle: (360 / $nb-items);
+  $rot: 0;
+  @for $i from 1 through $nb-items {
+    > :nth-of-type(#{$i}) {
+      transform: rotate($rot * 1deg) translate($half-parent) rotate($rot * -1deg);
+    }
+    $rot: ($rot + $angle);
+  }
 }
