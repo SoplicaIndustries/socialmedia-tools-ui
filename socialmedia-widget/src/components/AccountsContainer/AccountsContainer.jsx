@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import './AccountsContainer.css';
 import { useTheme } from '../../theme/ThemeContext';
-import { AccountCard } from '../AccountCard'; // Import AccountCard
+import SocialIcon, { availablePlatforms } from '../SocialIcons';
 
 /**
  * AccountsContainer component displays a scrollable/expandable container for AccountCard components
@@ -17,7 +17,9 @@ const AccountsContainer = ({
   onSelectionChange = null,
   editable = false,
   onAccountAdd = null,
-  onAccountRemove = null
+  onAccountRemove = null,
+  showAddButton = false,
+  scrollable = false // When true, horizontal scroll; when false, wrap to next line
 }) => {
   const containerRef = useRef(null);
   const [isScrollable, setIsScrollable] = useState(false);
@@ -107,7 +109,7 @@ const AccountsContainer = ({
                 className="remove-account-button"
                 onClick={(event) => handleRemoveAccount(child.props.id || child.key, event)}
               >
-                Remove
+                ×
               </button>
             )}
             {clonedChild}
@@ -117,20 +119,25 @@ const AccountsContainer = ({
       return child;
     });
 
-    // Add "Add Account" card
-    clonedChildren.push(
-      <div key="add-account" className="account-card-wrapper">
-        <AccountCard
-          key="add-account-card"
-          name="Add Account"
-          onClick={handleAddAccount}
-          platform="default"
-        />
-      </div>
-    );
+    // Add "Add Account" button if showAddButton is true
+    if (showAddButton) {
+      clonedChildren.push(
+        <div key="add-account" className="account-card-wrapper">
+          <div 
+            className="add-account-button-wrapper"
+            onClick={handleAddAccount}
+          >
+            <div className="add-account-button">
+              <span className="plus-icon">+</span>
+            </div>
+            <span className="add-account-label">Add Account</span>
+          </div>
+        </div>
+      );
+    }
 
     return clonedChildren;
-  }, [children, selectable, selectedChildren, handleCardClick, isEditing, editable, onAccountRemove, onAccountAdd]);
+  }, [children, selectable, selectedChildren, handleCardClick, isEditing, editable, onAccountRemove, onAccountAdd, theme, showAddButton]);
 
   // Generate CSS variables for the component
   const containerStyle = {
@@ -140,27 +147,40 @@ const AccountsContainer = ({
     '--container-bg': theme.colors.surface,
     '--border-radius': theme.borderRadius.lg,
     '--shadow': theme.shadows.sm,
-    '--padding': theme.spacing.md
+    '--padding': theme.spacing.md,
+    '--primary-color': theme.colors.primary
   };
 
+  // Container class based on scrollable prop
+  const containerClass = `accounts-container ${
+    scrollable ? 'accounts-container--scrollable' : 'accounts-container--wrap'
+  }`;
+
   return (
-    <div className="accounts-container-wrapper" style={containerStyle}></div>
+    <div className="accounts-container-wrapper" style={containerStyle}>
       <div className="accounts-container-header">
-        {title && <h3 className="accounts-container__title">{title}</h3>}
         {editable && (
-          <button className="edit-button" onClick={() => setIsEditing(!isEditing)}></button>
-            {isEditing ? 'Done' : 'Edit'}
-          </button>
+          <div 
+            className={`edit-button-container ${isEditing ? 'editing-active' : ''}`}
+            onClick={() => setIsEditing(!isEditing)}
+          >
+            <span className="edit-icon">✏️</span>
+            <span className="edit-text">{isEditing ? 'Done Editing' : 'Edit'}</span>
+          </div>
         )}
+        {title && <h3 className="accounts-container__title">{title}</h3>}
       </div>
       
-      <div className="accounts-container" ref={containerRef}>
+      {isEditing && (
+        <p className="edit-instructions">Click the X button to remove accounts</p>
+      )}
+      
+      <div className={containerClass} ref={containerRef}>
         {renderedChildren}
       </div>
       
-      {isScrollable && (
+      {scrollable && isScrollable && (
         <div className="accounts-container__scroll-indicator">
-          <span>Scroll for more</span>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="9 18 15 12 9 6"></polyline>
           </svg>
@@ -180,7 +200,9 @@ AccountsContainer.propTypes = {
   onSelectionChange: PropTypes.func,
   editable: PropTypes.bool,
   onAccountAdd: PropTypes.func,
-  onAccountRemove: PropTypes.func
+  onAccountRemove: PropTypes.func,
+  showAddButton: PropTypes.bool,
+  scrollable: PropTypes.bool // Replace displayMode with scrollable
 };
 
 export default AccountsContainer;

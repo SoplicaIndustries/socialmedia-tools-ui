@@ -53,8 +53,8 @@ function App() {
       <h1>Social Media Widgets</h1>
       
       <section className="demo-section">
-        <h2>Selectable Accounts Container</h2>
-        <p>This container displays social media profiles that can be selected. Click to select/deselect accounts.</p>
+        <h2>Selectable and Editable Accounts Container</h2>
+        <p>This container displays social media profiles that can be selected and edited. Click to select/deselect accounts, and use the edit button to remove accounts or add new ones.</p>
         
         <AccountsContainer 
           title="Your Social Media Connections" 
@@ -64,8 +64,11 @@ function App() {
           selectable={true}
           onSelectionChange={(selected) => setSelectedAccounts(selected)}
           editable={true}
+          showAddButton={true}
           onAccountAdd={handleAccountAdd}
           onAccountRemove={handleAccountRemove}
+          displayMode="grid"
+          scrollable={false} // Will wrap to multiple rows
         >
           {accounts.map(account => (
             <AccountCard 
@@ -90,14 +93,17 @@ function App() {
       </section>
       
       <section className="demo-section">
-        <h2>Clickable Social Media Platform Icons (Custom onClick)</h2>
-        <p>These cards use a custom onClick handler that overrides the default behavior.</p>
+        <h2>Clickable Social Media Platform Icons (Custom onClick) - Not Editable</h2>
+        <p>These cards use a custom onClick handler that overrides the default behavior and are not editable.</p>
         
         <AccountsContainer 
           title="Available Platforms" 
           maxRows={1}
           expandBreakpoint="768px"
           itemsPerRow={5}
+          showAddButton={false}
+          displayMode="row"
+          scrollable={true} // Will scroll horizontally
         >
           {availablePlatforms().map(platform => (
             <AccountCard
