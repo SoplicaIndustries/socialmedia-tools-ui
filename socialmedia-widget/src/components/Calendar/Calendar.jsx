@@ -26,6 +26,7 @@ const Calendar = ({
   const [selectedDate, setSelectedDate] = useState(null);
   const [view, setView] = useState(initialView === 'day' ? 'month' : initialView);
   const [searchQuery, setSearchQuery] = useState('');
+  const [platformFilters, setPlatformFilters] = useState([]);
   
   // Convert plain event objects to CalendarEvent instances
   const standardizedEvents = useMemo(() => {
@@ -34,11 +35,28 @@ const Calendar = ({
     });
   }, [events]);
   
-  // Filter events based on search query
+  // Filter events based on search query AND platform filters
   const filteredEvents = useMemo(() => {
-    if (!searchQuery) return standardizedEvents;
-    return standardizedEvents.filter(event => event.matchesSearch(searchQuery));
-  }, [standardizedEvents, searchQuery]);
+    let filtered = standardizedEvents;
+    
+    // Apply text search filter
+    if (searchQuery) {
+      filtered = filtered.filter(event => event.matchesSearch(searchQuery));
+    }
+    
+    // Apply platform filter
+    if (platformFilters.length > 0) {
+      filtered = filtered.filter(event => {
+        // If the event has no services, it won't match any platform filter
+        if (!event.services || event.services.length === 0) return false;
+        
+        // Check if any of the event's services match the selected platforms
+        return event.services.some(service => platformFilters.includes(service));
+      });
+    }
+    
+    return filtered;
+  }, [standardizedEvents, searchQuery, platformFilters]);
   
   // Generate days for the calendar grid when date/view/filtered events change
   useEffect(() => {
@@ -48,6 +66,23 @@ const Calendar = ({
   // Handle search query changes
   const handleSearch = (query) => {
     setSearchQuery(query);
+  };
+  
+  // Handle platform filter changes
+  const handlePlatformFilterChange = (platform, clearAll = false) => {
+    if (clearAll) {
+      setPlatformFilters([]);
+    } else if (platform) {
+      setPlatformFilters(prev => {
+        if (prev.includes(platform)) {
+          // Remove the platform if it's already selected
+          return prev.filter(p => p !== platform);
+        } else {
+          // Add the platform to the filters
+          return [...prev, platform];
+        }
+      });
+    }
   };
 
   // Generate days array for month/week views using the provided events
@@ -277,7 +312,7 @@ const Calendar = ({
     <div 
       className={`bg-white dark:bg-gray-800 shadow-md rounded-lg flex flex-col ${className}`}
     >
-      {/* Header is outside of the scrollable area, now with search */}
+      {/* Header is outside of the scrollable area, now with search and platform filters */}
       <CalendarHeader 
         currentDate={currentDate}
         view={view}
@@ -289,14 +324,18 @@ const Calendar = ({
         showDayView={false}
         onSearch={handleSearch}
         searchQuery={searchQuery}
+        onPlatformFilterChange={handlePlatformFilterChange}
+        selectedPlatforms={platformFilters}
       />
-      
-      {/* Remove search results info div - we'll just show or hide events now */}
       
       {/* Calendar body is the only scrollable part */}
       <div 
         className="flex-1 overflow-auto"
-        style={{ maxHeight: maxHeight !== 'none' ? `calc(${maxHeight} - 60px)` : 'none' }}
+        style={{ 
+          maxHeight: maxHeight !== 'none' ? `calc(${maxHeight} - ${
+            platformFilters.length > 0 ? '100px' : '60px'
+          })` : 'none' 
+        }}
       >
         {view === 'month' && daysInMonth.length > 0 && (
           <MonthView 
