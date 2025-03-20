@@ -1,0 +1,124 @@
+/* Week view styles */
+.calendar-week-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.calendar-weekdays.week-view {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background-color: var(--calendar-bg, white);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 8px 0;
+  border-bottom: 2px solid var(--calendar-border, #eaeaea);
+}
+
+.calendar-weekdays.week-view .weekday {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px;
+}
+
+.weekday-name {
+  font-size: 0.8rem;
+  font-weight: normal;
+  margin-bottom: 6px;
+  opacity: 0.8;
+}
+
+.weekday-date {
+  font-size: 1.2rem;
+  font-weight: bold;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s;
+}
+
+.weekday-month {
+  font-size: 0.7rem;
+  font-weight: normal;
+  opacity: 0.7;
+  margin-top: -2px;
+}
+
+.weekday-date:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.weekday-date.selected {
+  background-color: var(--calendar-selected-bg, rgba(156, 39, 176, 0.2));
+  color: var(--calendar-selected-border, #9c27b0);
+}
+
+.calendar-weekdays.week-view .weekday.today {
+  background-color: var(--calendar-today-bg, rgba(25, 118, 210, 0.06));
+}
+
+.calendar-weekdays.week-view .weekday.today .weekday-date {
+  background-color: var(--calendar-today-border, #1976d2);
+  color: white;
+}
+
+.calendar-weekdays.week-view .weekday.today .weekday-month {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.week-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.hour-row {
+  display: flex;
+  min-height: 60px;
+  border-bottom: 1px solid var(--calendar-border, #eaeaea);
+}
+
+.hour-label {
+  width: 80px;
+  padding: 4px;
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--calendar-inactive-text, #666);
+  border-right: 1px solid var(--calendar-border, #eaeaea);
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding-right: 12px;
+  padding-top: 8px;
+  flex-shrink: 0;
+  background-color: rgba(0, 0, 0, 0.01);
+  font-weight: 500;
+}
+
+.week-hour-cells {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  flex-grow: 1;
+}
+
+.week-hour-cell {
+  border-right: 1px solid var(--calendar-border, #eaeaea);
+  position: relative;
+  min-height: 60px;
+}
+
+.week-hour-cell:nth-child(7) {
+  border-right: none;
+}
+
+.week-hour-cell.today-column {
+  background-color: var(--calendar-today-bg, rgba(25, 118, 210, 0.04));
+}

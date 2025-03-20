@@ -1,0 +1,108 @@
+/* Responsive adjustments */
+@media (min-width: 768px) {
+  .calendar-container {
+    padding: 0;
+  }
+
+  .calendar-title {
+    flex-direction: row;
+    gap: 16px;
+  }
+
+  .calendar-title h2 {
+    font-size: 1.5rem;
+    margin: 0;
+  }
+
+  .calendar-today-btn {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-header {
+    flex-direction: column;
+    padding: 12px 8px;
+    gap: 12px;
+  }
+
+  .calendar-nav-btn {
+    position: absolute;
+    top: 12px;
+  }
+
+  .calendar-nav-btn:first-child {
+    left: 10px;
+  }
+
+  .calendar-nav-btn:last-child {
+    right: 10px;
+  }
+
+  .calendar-title {
+    padding: 0 40px; /* Space for nav buttons */
+  }
+
+  .calendar-title h2 {
+    font-size: 1.1rem;
+    text-align: center;
+  }
+
+  .calendar-actions {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .view-toggles {
+    width: 100%;
+  }
+
+  .view-toggle-btn {
+    flex: 1;
+    text-align: center;
+  }
+
+  .week-hour-cells {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+
+  .week-hour-cell {
+    min-width: 100px;
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  .calendar-day {
+    min-height: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-header {
+    padding: 8px 4px;
+  }
+
+  .calendar-title h2 {
+    font-size: 1rem;
+  }
+
+  .weekday {
+    padding: 6px 2px;
+    font-size: 0.75rem;
+  }
+
+  .day-number {
+    width: 24px;
+    height: 24px;
+    font-size: 0.85rem;
+  }
+
+  .hour-label {
+    width: 50px;
+    font-size: 0.7rem;
+    padding-right: 6px;
+  }
+}

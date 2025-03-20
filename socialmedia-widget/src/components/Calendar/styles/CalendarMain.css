@@ -1,0 +1,35 @@
+/* Base calendar container */
+.calendar-container {
+  background-color: var(--calendar-bg, white);
+  color: var(--calendar-text, #333);
+  border-radius: var(--calendar-border-radius, 12px);
+  box-shadow: var(--calendar-shadow, 0 4px 20px rgba(0, 0, 0, 0.08));
+  overflow: hidden;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  font-family: var(--sm-typography-fontFamily, system-ui, sans-serif);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Calendar body for all views */
+.calendar-body {
+  height: 500px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  position: relative;
+  background-color: var(--calendar-bg, white);
+}
+
+.calendar-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.calendar-body::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.calendar-body::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}

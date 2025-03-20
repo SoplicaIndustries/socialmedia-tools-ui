@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import './App.css'
 import { useTheme } from './theme/ThemeContext'
-import { AccountCard, AccountsContainer, availablePlatforms } from './components'
+import { AccountCard, AccountsContainer, availablePlatforms, Calendar } from './components'
 
 function App() {
   const theme = useTheme()
   const [selectedAccounts, setSelectedAccounts] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
   const [accounts, setAccounts] = useState([
     { id: 1, name: "Alice Smith", platform: "instagram", tooltipText: "Follow Alice on Instagram" },
     { id: 2, name: "Bob Johnson", platform: "facebook", tooltipText: "Connect with Bob on Facebook" },
@@ -61,6 +62,12 @@ function App() {
   // Custom onClick handler for the second container
   const handlePlatformClick = (platform) => {
     alert(`Custom handler: You clicked on ${platform.charAt(0).toUpperCase() + platform.slice(1)} platform!`);
+  };
+
+  // Handle date click in calendar
+  const handleDateClick = (date) => {
+    setSelectedDate(date);
+    alert(`Selected date: ${date.toLocaleDateString()}`);
   };
 
   return (
@@ -133,6 +140,24 @@ function App() {
             />
           ))}
         </AccountsContainer>
+      </section>
+      
+      <section className="demo-section">
+        <h2>Calendar Component</h2>
+        <p>A responsive calendar that allows navigation between months. Click on any date to select it.</p>
+        
+        <Calendar 
+          initialDate={new Date()} 
+          onDateClick={handleDateClick}
+          highlightToday={true}
+          startWeekOnSunday={true}
+        />
+        
+        {selectedDate && (
+          <div className="selection-info">
+            <p>Selected date: {selectedDate.toLocaleDateString()}</p>
+          </div>
+        )}
       </section>
       
       <div className="theme-info">
