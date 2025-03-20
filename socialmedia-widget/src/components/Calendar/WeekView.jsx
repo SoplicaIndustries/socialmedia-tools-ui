@@ -159,6 +159,7 @@ const WeekView = ({
                         endTime={event.endTime}
                         color={event.color}
                         isAllDay={event.isAllDay}
+                        services={event.services || []} // Pass services array to EventItem
                         view="week"
                       />
                     </div>

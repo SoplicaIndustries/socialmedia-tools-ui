@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTheme } from './theme/ThemeContext'
 import { AccountCard, AccountsContainer, availablePlatforms, Calendar } from './components'
+import CalendarEvent from './components/Calendar/CalendarEvent'
 
 function App() {
   const theme = useTheme()
@@ -18,81 +19,79 @@ function App() {
   ]);
   const [isCompactView, setIsCompactView] = useState(false);
   
-  // Calendar events data
+  // Calendar events data using CalendarEvent class - social media posting schedule
   const calendarEvents = [
-    {
+    new CalendarEvent({
       id: "event-1",
-      title: "Team Meeting",
-      description: "Weekly team sync",
+      // No title, just description
+      description: "Share product launch behind-the-scenes photos with team interviews. Use hashtags #ProductLaunch #TeamSpotlight",
       startTime: new Date(new Date().getFullYear(), new Date().getMonth(), 10, 10, 0),
       endTime: new Date(new Date().getFullYear(), new Date().getMonth(), 10, 11, 30),
-      color: "#4F46E5", // indigo
-      isAllDay: false
-    },
-    {
+      color: "#E4405F", // Instagram color
+      services: ['instagram']
+    }),
+    new CalendarEvent({
       id: "event-2",
-      title: "Product Launch",
-      description: "New feature release",
+      // No title, just description
+      description: "New product announcement with coordinated posts across all platforms. Link to landing page in bio.",
       startTime: new Date(new Date().getFullYear(), new Date().getMonth(), 15, 9, 0),
-      endTime: new Date(new Date().getFullYear(), new Date().getMonth(), 15, 17, 0),
-      color: "#EC4899", // pink
-      isAllDay: true
-    },
-    {
-      id: "event-3",
-      title: "Client Call",
-      description: "Follow up on requirements",
-      startTime: new Date(new Date().getFullYear(), new Date().getMonth(), 12, 14, 30),
-      endTime: new Date(new Date().getFullYear(), new Date().getMonth(), 12, 15, 30),
       color: "#10B981", // green
-      isAllDay: false
-    },
-    {
+      isAllDay: true,
+      services: ['facebook', 'instagram', 'twitter', 'linkedin']
+    }),
+    new CalendarEvent({
+      id: "event-3",
+      // No title, just description
+      description: "Product demo with trending sound. Show 3 key features in under 30 seconds.",
+      startTime: new Date(new Date().getFullYear(), new Date().getMonth(), 12, 14, 30),
+      color: "#000000", // TikTok black
+      services: ['tiktok']
+    }),
+    new CalendarEvent({
       id: "event-4",
-      title: "Dentist Appointment",
-      description: "Regular checkup",
+      // No title, just description
+      description: "Thought leadership piece on industry trends. Include case study data and tag strategic partners.",
       startTime: new Date(new Date().getFullYear(), new Date().getMonth(), 18, 11, 0),
       endTime: new Date(new Date().getFullYear(), new Date().getMonth(), 18, 12, 0),
-      color: "#F59E0B", // amber
-      isAllDay: false
-    },
-    {
+      color: "#0A66C2", // LinkedIn blue
+      services: ['linkedin']
+    }),
+    new CalendarEvent({
       id: "event-5",
-      title: "Design Review",
-      description: "Review latest mockups",
+      // No title, just description
+      description: "Detailed product walkthrough showing advanced features. Include timestamps in description and linked resources.",
       startTime: new Date(new Date().getFullYear(), new Date().getMonth(), 5, 13, 0),
       endTime: new Date(new Date().getFullYear(), new Date().getMonth(), 5, 15, 0),
-      color: "#4F46E5", // indigo
-      isAllDay: false
-    },
-    {
+      color: "#FF0000", // YouTube red
+      services: ['youtube']
+    }),
+    new CalendarEvent({
       id: "event-6",
-      title: "Company Holiday",
-      description: "Office closed",
+      // No title, just description
+      description: "Team meeting to plan next month's content calendar. Bring performance metrics from previous campaigns.",
       startTime: new Date(new Date().getFullYear(), new Date().getMonth(), 25, 0, 0),
       endTime: new Date(new Date().getFullYear(), new Date().getMonth(), 25, 23, 59),
-      color: "#EF4444", // red
+      color: "#4F46E5", // indigo
       isAllDay: true
-    },
-    // Add some events for the current week
-    {
+    }),
+    // Current day posts
+    new CalendarEvent({
       id: "event-11",
-      title: "Today's Meeting",
-      description: "Discuss current tasks",
+      // No title, just description
+      description: "Q&A session with product team. Promote 24 hours in advance with teaser content.",
       startTime: new Date(new Date().setHours(10, 0, 0)),
       endTime: new Date(new Date().setHours(11, 0, 0)),
-      color: "#10B981", // green
-      isAllDay: false
-    },
-    {
+      color: "#1877F2", // Facebook blue
+      services: ['facebook']
+    }),
+    new CalendarEvent({
       id: "event-12",
-      title: "Today's Lunch",
-      description: "Team lunch",
+      // No title, just description
+      description: "Behind-the-scenes office tour with polls and questions to boost engagement.",
       startTime: new Date(new Date().setHours(12, 30, 0)),
-      endTime: new Date(new Date().setHours(13, 30, 0)),
-      color: "#F59E0B", // amber
-      isAllDay: false
-    }
+      color: "#E4405F", // Instagram color
+      services: ['instagram']
+    })
   ];
 
   // Example theme info
@@ -225,9 +224,9 @@ function App() {
       </section>
       
       <section className="mb-10 p-6 bg-white dark:bg-gray-800 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-2">Calendar Component</h2>
+        <h2 className="text-xl font-semibold mb-2">Social Media Content Calendar</h2>
         <p className="mb-4 text-gray-600 dark:text-gray-300">
-          A responsive calendar that allows navigation between months. Click on any date to select it.
+          Plan and schedule your social media posts across different platforms. View all your content in one place.
         </p>
         
         {/* Add a toggle for compact view */}

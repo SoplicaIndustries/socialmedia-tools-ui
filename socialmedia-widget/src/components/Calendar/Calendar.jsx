@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { useTheme } from '../../theme/ThemeContext';
 import CalendarHeader from './CalendarHeader';
 import MonthView from './MonthView';
 import WeekView from './WeekView';
+import CalendarEvent from './CalendarEvent';
 
 /**
  * Calendar component that displays calendar with multiple view options
@@ -15,20 +16,39 @@ const Calendar = ({
   startWeekOnSunday = true,
   className = '',
   initialView = 'month',
-  events = [], // Accept events as prop with default empty array
-  maxHeight = 'none', // Accept max height as a prop
-  compactWeekView = false // Add new prop for compact week view
+  events = [], 
+  maxHeight = 'none',
+  compactWeekView = false
 }) => {
   const theme = useTheme();
   const [currentDate, setCurrentDate] = useState(new Date(initialDate));
   const [daysInMonth, setDaysInMonth] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [view, setView] = useState(initialView === 'day' ? 'month' : initialView);
+  const [searchQuery, setSearchQuery] = useState('');
   
-  // Generate days for the calendar grid when date/view changes
+  // Convert plain event objects to CalendarEvent instances
+  const standardizedEvents = useMemo(() => {
+    return events.map(event => {
+      return event instanceof CalendarEvent ? event : new CalendarEvent(event);
+    });
+  }, [events]);
+  
+  // Filter events based on search query
+  const filteredEvents = useMemo(() => {
+    if (!searchQuery) return standardizedEvents;
+    return standardizedEvents.filter(event => event.matchesSearch(searchQuery));
+  }, [standardizedEvents, searchQuery]);
+  
+  // Generate days for the calendar grid when date/view/filtered events change
   useEffect(() => {
-    generateDaysForMonth(currentDate, events);
-  }, [currentDate, view, events]);
+    generateDaysForMonth(currentDate, filteredEvents);
+  }, [currentDate, view, filteredEvents]);
+
+  // Handle search query changes
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+  };
 
   // Generate days array for month/week views using the provided events
   const generateDaysForMonth = (date, eventList) => {
@@ -257,7 +277,7 @@ const Calendar = ({
     <div 
       className={`bg-white dark:bg-gray-800 shadow-md rounded-lg flex flex-col ${className}`}
     >
-      {/* Header is outside of the scrollable area */}
+      {/* Header is outside of the scrollable area, now with search */}
       <CalendarHeader 
         currentDate={currentDate}
         view={view}
@@ -267,7 +287,11 @@ const Calendar = ({
         onViewChange={setView}
         formatHeaderDate={formatHeaderDate}
         showDayView={false}
+        onSearch={handleSearch}
+        searchQuery={searchQuery}
       />
+      
+      {/* Remove search results info div - we'll just show or hide events now */}
       
       {/* Calendar body is the only scrollable part */}
       <div 
@@ -292,7 +316,7 @@ const Calendar = ({
             selectedDate={selectedDate}
             onDayClick={handleDayClick}
             onEventClick={handleEventClick}
-            compactView={compactWeekView} // Pass the compactWeekView prop
+            compactView={compactWeekView}
           />
         )}
       </div>
