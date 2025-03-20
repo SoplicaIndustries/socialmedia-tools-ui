@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useTheme } from '../../theme/ThemeContext';
-import './Calendar.css';
+import CalendarHeader from './CalendarHeader';
+import MonthView from './MonthView';
+import WeekView from './WeekView';
 
 /**
  * Calendar component that displays calendar with multiple view options
@@ -12,21 +14,24 @@ const Calendar = ({
   highlightToday = true,
   startWeekOnSunday = true,
   className = '',
-  initialView = 'month', // Default view is month
+  initialView = 'month',
+  events = [], // Accept events as prop with default empty array
+  maxHeight = 'none', // Accept max height as a prop
+  compactWeekView = false // Add new prop for compact week view
 }) => {
   const theme = useTheme();
   const [currentDate, setCurrentDate] = useState(new Date(initialDate));
   const [daysInMonth, setDaysInMonth] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
-  const [view, setView] = useState(initialView); // 'day', 'week', or 'month'
+  const [view, setView] = useState(initialView === 'day' ? 'month' : initialView);
   
-  // Generate days for the calendar grid
+  // Generate days for the calendar grid when date/view changes
   useEffect(() => {
-    generateDaysForMonth(currentDate);
-  }, [currentDate]);
+    generateDaysForMonth(currentDate, events);
+  }, [currentDate, view, events]);
 
-  // Generate days array for the current month view, including days from prev/next month for filling the grid
-  const generateDaysForMonth = (date) => {
+  // Generate days array for month/week views using the provided events
+  const generateDaysForMonth = (date, eventList) => {
     const year = date.getFullYear();
     const month = date.getMonth();
     
@@ -53,12 +58,14 @@ const Calendar = ({
       const prevMonthDaysCount = prevMonth.getDate();
       
       for (let i = prevMonthDaysCount - firstDayOfWeek + 1; i <= prevMonthDaysCount; i++) {
+        const date = new Date(year, month - 1, i);
         prevMonthDays.push({
-          date: new Date(year, month - 1, i),
+          date,
           dayNumber: i,
           isCurrentMonth: false,
           isPrevMonth: true,
-          isNextMonth: false
+          isNextMonth: false,
+          events: getEventsForDate(date, eventList)
         });
       }
     }
@@ -74,7 +81,7 @@ const Calendar = ({
         isPrevMonth: false,
         isNextMonth: false,
         isToday: isToday(date),
-        hasEvents: Math.random() > 0.7 // Placeholder for demo event indicator
+        events: getEventsForDate(date, eventList)
       });
     }
     
@@ -85,12 +92,14 @@ const Calendar = ({
     // Days from the next month to display
     const nextMonthDays = [];
     for (let i = 1; i <= nextMonthDaysNeeded; i++) {
+      const date = new Date(year, month + 1, i);
       nextMonthDays.push({
-        date: new Date(year, month + 1, i),
+        date,
         dayNumber: i,
         isCurrentMonth: false,
         isPrevMonth: false,
-        isNextMonth: true
+        isNextMonth: true,
+        events: getEventsForDate(date, eventList)
       });
     }
     
@@ -98,13 +107,22 @@ const Calendar = ({
     setDaysInMonth([...prevMonthDays, ...currentMonthDays, ...nextMonthDays]);
   };
 
-  // Get days for week view
+  // Get events for a specific date from the provided events array
+  const getEventsForDate = (date, eventList) => {
+    return eventList.filter(event => {
+      const eventDate = new Date(event.startTime);
+      return eventDate.getDate() === date.getDate() && 
+             eventDate.getMonth() === date.getMonth() &&
+             eventDate.getFullYear() === date.getFullYear();
+    });
+  };
+
+  // Get days for week view with events 
   const getCurrentWeekDays = () => {
     const date = new Date(currentDate);
     const day = date.getDay();
-    const diff = startWeekOnSunday ? day : (day === 0 ? 6 : day - 1); // Adjust for weeks starting on Monday
+    const diff = startWeekOnSunday ? day : (day === 0 ? 6 : day - 1);
 
-    // Start date of the week (Sunday or Monday)
     date.setDate(date.getDate() - diff);
     
     const weekDays = [];
@@ -117,7 +135,7 @@ const Calendar = ({
         monthName: currentDay.toLocaleDateString('en-US', { month: 'short' }),
         isCurrentMonth: currentDay.getMonth() === currentDate.getMonth(),
         isToday: isToday(currentDay),
-        hasEvents: Math.random() > 0.7 // Demo placeholder
+        events: getEventsForDate(currentDay, events)
       });
       date.setDate(date.getDate() + 1);
     }
@@ -132,10 +150,25 @@ const Calendar = ({
       hours.push({
         hour: i,
         timeLabel: formatHour(i),
-        hasEvents: Math.random() > 0.8 // Demo placeholder
+        events: getEventsForHour(i)
       });
     }
     return hours;
+  };
+
+  // Get events for specific hour in the current day
+  const getEventsForHour = (hour) => {
+    return events.filter(event => {
+      const eventDate = new Date(event.startTime);
+      return isDateEqual(eventDate, currentDate) && eventDate.getHours() === hour;
+    });
+  };
+  
+  // Check if two dates are the same day
+  const isDateEqual = (date1, date2) => {
+    return date1.getDate() === date2.getDate() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getFullYear() === date2.getFullYear();
   };
   
   // Format hour (12-hour format with am/pm)
@@ -155,9 +188,7 @@ const Calendar = ({
   const prevPeriod = () => {
     setCurrentDate(prevDate => {
       const newDate = new Date(prevDate);
-      if (view === 'day') {
-        newDate.setDate(newDate.getDate() - 1);
-      } else if (view === 'week') {
+      if (view === 'week') {
         newDate.setDate(newDate.getDate() - 7);
       } else {
         newDate.setMonth(newDate.getMonth() - 1);
@@ -169,9 +200,7 @@ const Calendar = ({
   const nextPeriod = () => {
     setCurrentDate(prevDate => {
       const newDate = new Date(prevDate);
-      if (view === 'day') {
-        newDate.setDate(newDate.getDate() + 1);
-      } else if (view === 'week') {
+      if (view === 'week') {
         newDate.setDate(newDate.getDate() + 7);
       } else {
         newDate.setMonth(newDate.getMonth() + 1);
@@ -193,16 +222,9 @@ const Calendar = ({
     }
   };
 
-  // Get current format based on view
-  const formatHeaderDate = () => {
-    if (view === 'day') {
-      return currentDate.toLocaleDateString('en-US', { 
-        weekday: 'long',
-        month: 'long', 
-        day: 'numeric',
-        year: 'numeric'
-      });
-    } else if (view === 'week') {
+  // Format header date based on current view
+  const formatHeaderDate = (date, view) => {
+    if (view === 'week') {
       const weekDays = getCurrentWeekDays();
       const firstDay = weekDays[0].date;
       const lastDay = weekDays[6].date;
@@ -213,7 +235,7 @@ const Calendar = ({
       
       return `${firstDay.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - ${lastDay.getDate()}, ${lastDay.getFullYear()}`;
     } else {
-      return currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     }
   };
 
@@ -226,191 +248,53 @@ const Calendar = ({
     return weekdays;
   };
 
-  // Render month view
-  const renderMonthView = () => {
-    return (
-      <>
-        <div className="calendar-weekdays">
-          {getWeekdayNames().map((day, index) => (
-            <div key={index} className="weekday">{day}</div>
-          ))}
-        </div>
-        
-        <div className="calendar-days-grid">
-          {daysInMonth.map((day, index) => (
-            <div 
-              key={index} 
-              className={`calendar-day ${day.isCurrentMonth ? 'current-month' : 'other-month'} 
-                ${day.isToday && highlightToday ? 'today' : ''}
-                ${selectedDate && day.date.toDateString() === selectedDate.toDateString() ? 'selected' : ''}`}
-              onClick={() => handleDayClick(day)}
-            >
-              <span className="day-number">{day.dayNumber}</span>
-              {day.hasEvents && <div className="event-indicator"></div>}
-            </div>
-          ))}
-        </div>
-      </>
-    );
-  };
-
-  // Render week view
-  const renderWeekView = () => {
-    const weekDays = getCurrentWeekDays();
-    
-    return (
-      <div className="calendar-week-view">
-        <div className="calendar-weekdays week-view">
-          {weekDays.map((day, index) => (
-            <div 
-              key={index} 
-              className={`weekday ${day.isToday ? 'today' : ''} ${day.isCurrentMonth ? 'current-month' : ''}`}
-            >
-              <div className="weekday-name">{day.dayName}</div>
-              <div 
-                className={`weekday-date ${selectedDate && day.date.toDateString() === selectedDate.toDateString() ? 'selected' : ''}`}
-                onClick={() => handleDayClick(day)}
-              >
-                {day.dayNumber}
-                <div className="weekday-month">{day.monthName}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-        
-        <div className="week-content">
-          {getHoursForDay().map((hourData, hIndex) => (
-            <div key={hIndex} className="hour-row">
-              <div className="hour-label">{hourData.timeLabel}</div>
-              <div className="week-hour-cells">
-                {weekDays.map((day, dIndex) => (
-                  <div 
-                    key={dIndex} 
-                    className={`week-hour-cell ${day.isToday ? 'today-column' : ''}`}
-                  >
-                    {Math.random() > 0.9 && (
-                      <div className="event-placeholder" style={{ 
-                        backgroundColor: getRandomEventColor()
-                      }}>
-                        Sample Event
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  // Render day view
-  const renderDayView = () => {
-    const hours = getHoursForDay();
-    const isCurrentDayToday = isToday(currentDate);
-    
-    return (
-      <div className="calendar-day-view">
-        <div className="day-header">
-          <div className="day-title">
-            {currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-          </div>
-        </div>
-        
-        <div className="day-hours-container">
-          {hours.map((hourData, index) => (
-            <div 
-              key={index} 
-              className={`hour-block ${isCurrentDayToday && new Date().getHours() === hourData.hour ? 'current-hour' : ''}`}
-            >
-              <div className="hour-label">{hourData.timeLabel}</div>
-              <div className="hour-content">
-                {Math.random() > 0.85 && (
-                  <div className="event-placeholder" style={{ backgroundColor: getRandomEventColor() }}>
-                    Sample Event at {hourData.timeLabel}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  // Helper for demo event colors
-  const getRandomEventColor = () => {
-    const colors = [
-      theme.colors.primary + 'AA',
-      theme.colors.secondary + 'AA',
-      theme.colors.info + 'AA',
-      theme.colors.success + 'AA'
-    ];
-    return colors[Math.floor(Math.random() * colors.length)];
+  // Handle event click
+  const handleEventClick = (event) => {
+    alert(`Event: ${event.title}\nTime: ${new Date(event.startTime).toLocaleTimeString()} - ${new Date(event.endTime).toLocaleTimeString()}\n${event.description || ''}`);
   };
 
   return (
     <div 
-      className={`calendar-container ${className}`}
-      style={{
-        '--calendar-bg': theme.colors.surface,
-        '--calendar-text': theme.colors.text.primary,
-        '--calendar-border': theme.colors.text.disabled,
-        '--calendar-header-bg': theme.colors.primary,
-        '--calendar-header-text': '#ffffff',
-        '--calendar-today-bg': `${theme.colors.primary}33`,
-        '--calendar-today-border': theme.colors.primary,
-        '--calendar-highlight': theme.colors.secondary,
-        '--calendar-inactive-text': theme.colors.text.disabled,
-        '--calendar-border-radius': theme.borderRadius.md,
-        '--calendar-shadow': theme.shadows.sm,
-        '--calendar-event-indicator': theme.colors.primary,
-        '--calendar-selected-bg': `${theme.colors.secondary}33`,
-        '--calendar-selected-border': theme.colors.secondary
-      }}
+      className={`bg-white dark:bg-gray-800 shadow-md rounded-lg flex flex-col ${className}`}
     >
-      <div className="calendar-header">
-        <button className="calendar-nav-btn" onClick={prevPeriod}>
-          &lt;
-        </button>
-        <div className="calendar-title">
-          <h2>{formatHeaderDate()}</h2>
-          <div className="calendar-actions">
-            <button className="calendar-today-btn" onClick={goToToday}>
-              Today
-            </button>
-            <div className="view-toggles">
-              <button 
-                className={`view-toggle-btn ${view === 'day' ? 'active' : ''}`}
-                onClick={() => setView('day')}
-              >
-                Day
-              </button>
-              <button 
-                className={`view-toggle-btn ${view === 'week' ? 'active' : ''}`}
-                onClick={() => setView('week')}
-              >
-                Week
-              </button>
-              <button 
-                className={`view-toggle-btn ${view === 'month' ? 'active' : ''}`}
-                onClick={() => setView('month')}
-              >
-                Month
-              </button>
-            </div>
-          </div>
-        </div>
-        <button className="calendar-nav-btn" onClick={nextPeriod}>
-          &gt;
-        </button>
-      </div>
+      {/* Header is outside of the scrollable area */}
+      <CalendarHeader 
+        currentDate={currentDate}
+        view={view}
+        onPrevPeriod={prevPeriod}
+        onNextPeriod={nextPeriod}
+        onTodayClick={goToToday}
+        onViewChange={setView}
+        formatHeaderDate={formatHeaderDate}
+        showDayView={false}
+      />
       
-      <div className={`calendar-body calendar-${view}-view`}>
-        {view === 'month' && renderMonthView()}
-        {view === 'week' && renderWeekView()}
-        {view === 'day' && renderDayView()}
+      {/* Calendar body is the only scrollable part */}
+      <div 
+        className="flex-1 overflow-auto"
+        style={{ maxHeight: maxHeight !== 'none' ? `calc(${maxHeight} - 60px)` : 'none' }}
+      >
+        {view === 'month' && daysInMonth.length > 0 && (
+          <MonthView 
+            daysInMonth={daysInMonth}
+            weekdayNames={getWeekdayNames()}
+            selectedDate={selectedDate}
+            highlightToday={highlightToday}
+            onDayClick={handleDayClick}
+            onEventClick={handleEventClick}
+          />
+        )}
+        
+        {view === 'week' && (
+          <WeekView 
+            weekDays={getCurrentWeekDays()}
+            hours={getHoursForDay()}
+            selectedDate={selectedDate}
+            onDayClick={handleDayClick}
+            onEventClick={handleEventClick}
+            compactView={compactWeekView} // Pass the compactWeekView prop
+          />
+        )}
       </div>
     </div>
   );
@@ -422,7 +306,18 @@ Calendar.propTypes = {
   highlightToday: PropTypes.bool,
   startWeekOnSunday: PropTypes.bool,
   className: PropTypes.string,
-  initialView: PropTypes.oneOf(['day', 'week', 'month'])
+  initialView: PropTypes.oneOf(['week', 'month']),
+  events: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    description: PropTypes.string,
+    startTime: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]).isRequired,
+    endTime: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]).isRequired,
+    color: PropTypes.string.isRequired,
+    isAllDay: PropTypes.bool
+  })),
+  maxHeight: PropTypes.string,
+  compactWeekView: PropTypes.bool,
 };
 
 export default Calendar;

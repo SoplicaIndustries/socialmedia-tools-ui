@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { ThemeProvider } from '../theme/ThemeContext';
 import { defaultTheme } from '../theme/defaultTheme';
@@ -49,20 +49,29 @@ export function ThemeDemo() {
       }
     }
   };
-
-  const handleThemeChange = (event) => {
-    setCurrentTheme(event.target.value);
-  };
+  
+  // Apply a class to the html element based on the theme for dark mode
+  useEffect(() => {
+    const isDarkTheme = currentTheme === 'dark';
+    if (isDarkTheme) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [currentTheme]);
 
   return (
-    <>
-      <div className="theme-selector" style={{ marginBottom: '1rem' }}>
-        <label htmlFor="theme-select">Choose a theme: </label>
+    <div className="w-full">
+      <div className="flex justify-center items-center mb-6 p-4 bg-surface rounded-lg shadow">
+        <label htmlFor="theme-select" className="mr-3 text-primary">
+          Choose a theme:
+        </label>
         <select 
           id="theme-select"
           value={currentTheme} 
-          onChange={handleThemeChange}
-          style={{ padding: '0.5rem', marginLeft: '0.5rem' }}
+          onChange={(e) => setCurrentTheme(e.target.value)}
+          className="px-4 py-2 rounded border border-gray-300 dark:border-gray-600 
+                   bg-white dark:bg-gray-700 text-primary focus:outline-none focus:ring-2 focus:ring-primary"
         >
           <option value="default">Default</option>
           <option value="dark">Dark</option>
@@ -73,7 +82,7 @@ export function ThemeDemo() {
       <ThemeProvider theme={themes[currentTheme]}>
         <App />
       </ThemeProvider>
-    </>
+    </div>
   );
 }
 

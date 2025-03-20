@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import './AccountCard.css';
 import { useTheme } from '../../theme/ThemeContext';
 import SocialIcon, { availablePlatforms } from '../SocialIcons';
 
@@ -51,45 +50,76 @@ const AccountCard = React.memo(({
     }
   };
 
+  // Get size-based classes - INCREASED ICON SIZES
+  const getSizeClasses = () => {
+    switch(size) {
+      case 'sm':
+        return {
+          container: 'w-12 h-12', // 48px
+          icon: 'w-6 h-6 p-[2px]' // Increased from w-5 to w-6, reduced padding
+        };
+      case 'lg':
+        return {
+          container: 'w-20 h-20', // 80px
+          icon: 'w-9 h-9 p-[4px]' // Increased from w-7 to w-9, reduced padding
+        };
+      default: // md
+        return {
+          container: 'w-16 h-16', // 64px
+          icon: 'w-6 h-6 p-[4px]' // Increased from w-5 to w-7, reduced padding
+        };
+    }
+  };
+  
+  const sizeClasses = getSizeClasses();
+  const platformColor = getPlatformColor(platform, theme);
+
   return (
     <div 
-      className={`account-card account-card--${size} ${selected ? 'account-card--selected' : ''}`}
+      className={`relative inline-flex flex-col items-center justify-center cursor-pointer m-2 transition-transform duration-300 origin-bottom
+        ${selected ? '' : 'hover:-translate-y-1'}`}
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
       onClick={handleClick}
-      style={{
-        '--shadow': theme.shadows.md,
-        '--border-radius': theme.borderRadius.full,
-        '--transition': theme.transitions.normal,
-        '--primary-color': theme.colors.primary
-      }}
     >
-      <div className="account-card__avatar-container">
+      {/* Avatar Container with updated selection styling - added border-2/border-3 for proper thickness */}
+      <div 
+        className={`relative ${sizeClasses.container} rounded-full overflow-visible ${
+          selected 
+            ? 'border-3 shadow-lg ring-2 ring-offset-2' 
+            : 'border-0'
+        }`}
+        style={{
+          borderColor: selected ? theme.colors.primary : 'transparent',
+          ringColor: selected ? theme.colors.primary : 'transparent',
+        }}
+      >
+        {/* Avatar Image */}
         <img 
           src={avatarSrc} 
           alt={name || 'User avatar'} 
-          className="account-card__avatar"
+          className="w-full h-full object-cover rounded-full shadow-md"
         />
+        
+        {/* Platform Icon - Now bigger */}
         <div 
-          className="account-card__icon"
-          style={{
-            backgroundColor: getPlatformColor(platform, theme)
-          }}
+          className={`absolute bottom-0 right-0 ${sizeClasses.icon} rounded-full flex items-center justify-center 
+            translate-x-[20%] translate-y-[20%] shadow-md`}
+          style={{ backgroundColor: platformColor }}
         >
           <SocialIcon platform={platform || 'default'} color="#FFFFFF" />
         </div>
       </div>
       
+      {/* Removed animated glow effect */}
+      
+      {/* Tooltip */}
       {showTooltip && tooltipText && (
-        <div 
-          className="account-card__tooltip"
-          style={{
-            '--tooltip-bg': theme.colors.surface,
-            '--tooltip-color': theme.colors.text.primary,
-            '--tooltip-shadow': theme.shadows.sm
-          }}
-        >
+        <div className="absolute bottom-[calc(100%+10px)] left-1/2 -translate-x-1/2 bg-white text-gray-800 
+          px-3 py-1 rounded whitespace-nowrap text-sm z-10 shadow-sm pointer-events-none">
           {tooltipText}
+          {/* Arrow */}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white"></div>
         </div>
       )}
     </div>

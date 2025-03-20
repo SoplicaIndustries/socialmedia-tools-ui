@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import './AccountsContainer.css';
 import { useTheme } from '../../theme/ThemeContext';
 import AddAccountButton from './AddAccountButton';
 
@@ -110,10 +109,10 @@ const AccountsContainer = ({
         });
 
         return (
-          <div key={child.key} className="account-card-wrapper">
+          <div key={child.key} className="relative">
             {editable && isEditing && (
               <button
-                className="remove-account-button"
+                className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center bg-red-600 text-white rounded-full text-lg shadow-md hover:bg-red-700 hover:scale-110 transition-all z-10"
                 onClick={(event) => handleRemoveAccount(child.props.id || child.key, event)}
               >
                 ×
@@ -134,7 +133,7 @@ const AccountsContainer = ({
           isMenuOpen={isAddMenuOpen}
           onToggleMenu={() => setIsAddMenuOpen(!isAddMenuOpen)}
           onSelectPlatform={handleAddAccount}
-          size={size} // Pass the component's size prop to AddAccountButton
+          size={size}
         />
       );
     }
@@ -148,60 +147,53 @@ const AccountsContainer = ({
     isEditing, 
     editable, 
     onAccountRemove, 
-    onAccountAdd,
-    theme, 
     showAddButton,
     isAddMenuOpen,
-    size // Add size to dependency array
+    size
   ]);
 
-  // Generate CSS variables for the component
-  const containerStyle = {
-    '--max-rows': maxRows,
-    '--expand-breakpoint': expandBreakpoint,
-    '--items-per-row': itemsPerRow,
-    '--container-bg': theme.colors.surface,
-    '--border-radius': theme.borderRadius.lg,
-    '--shadow': theme.shadows.sm,
-    '--padding': theme.spacing.md,
-    '--primary-color': theme.colors.primary
-  };
-
-  // Container class based on scrollable prop
-  const containerClass = `accounts-container ${
-    scrollable ? 'accounts-container--scrollable' : 'accounts-container--wrap'
-  }`;
-
+  // Define container classes based on scrollable prop
+  const containerClass = scrollable 
+    ? "flex flex-nowrap overflow-x-auto pb-2 scrollbar-thin" 
+    : "flex flex-wrap gap-4 overflow-visible";
+  
   return (
-    <div className={`accounts-container-wrapper ${isAddMenuOpen ? 'menu-open' : ''}`} style={containerStyle}>
-      <div className="accounts-container-header">
+    <div className={`w-full relative bg-surface rounded-lg p-4 shadow-sm ${isAddMenuOpen ? 'z-50' : ''}`}
+      style={{ backgroundColor: theme.colors.surface }}>
+      <div className="flex justify-start items-center mb-4 gap-4">
+        {/* Edit Button */}
         {editable && (
           <div 
-            className={`edit-button-container ${isEditing ? 'editing-active' : ''}`}
+            className={`flex items-center cursor-pointer px-3 py-1.5 rounded ${isEditing ? 'hover:bg-red-100' : 'hover:bg-blue-100'}`}
             onClick={() => setIsEditing(!isEditing)}
           >
-            <span className="edit-icon">
-              {isEditing ? '✓' : '✎'} {/* Unicode edit icon */}
+            <span className={`mr-2 ${isEditing ? 'text-red-600' : 'text-blue-600'}`}>
+              {isEditing ? '✓' : '✎'}
             </span>
-            <span className="edit-text">{isEditing ? 'Done' : 'Edit'}</span>
+            <span className={`text-sm font-medium ${isEditing ? 'text-red-600' : 'text-blue-600'}`}>
+              {isEditing ? 'Done' : 'Edit'}
+            </span>
           </div>
         )}
-        {title && <h3 className="accounts-container__title">{title}</h3>}
+        
+        {/* Title */}
+        {title && <h3 className="text-xl font-normal m-0">{title}</h3>}
       </div>
       
+      {/* Edit Instructions */}
       {isEditing && (
-        <p className="edit-instructions">Click the X button to remove accounts</p>
+        <p className="text-gray-600 text-sm italic text-center mb-4">Click the X button to remove accounts</p>
       )}
       
+      {/* Accounts Container */}
       <div className={containerClass} ref={containerRef}>
         {renderedChildren}
       </div>
       
-      {/* Background overlay when add menu is open */}
-      
+      {/* Scroll Indicator */}
       {scrollable && isScrollable && (
-        <div className="accounts-container__scroll-indicator">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div className="absolute right-4 bottom-4 w-8 h-8 flex items-center justify-center bg-white rounded-full shadow-md animate-pulse">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
             <polyline points="9 18 15 12 9 6"></polyline>
           </svg>
         </div>
@@ -223,7 +215,7 @@ AccountsContainer.propTypes = {
   onAccountRemove: PropTypes.func,
   showAddButton: PropTypes.bool,
   scrollable: PropTypes.bool,
-  size: PropTypes.oneOf(['sm', 'md', 'lg']) // Add size to PropTypes
+  size: PropTypes.oneOf(['sm', 'md', 'lg'])
 };
 
 export default AccountsContainer;

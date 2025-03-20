@@ -20,6 +20,17 @@ export function ThemeProvider({ theme, children }) {
     const cssVariables = createThemeCssVariables(mergedTheme);
     applyCssVariables(document.documentElement, cssVariables);
     
+    // Apply dark mode if theme has dark background
+    const isDarkMode = 
+      mergedTheme.colors?.background?.toString().toLowerCase() === '#121212' || 
+      mergedTheme.colors?.background?.toString().toLowerCase() === '#1e1e1e';
+    
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    
     return () => {
       // Clean up theme variables if needed
     };
