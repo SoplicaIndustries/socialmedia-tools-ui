@@ -9,6 +9,8 @@ import AddAccountButton from './AddAccountButton';
 const AccountsContainer = ({ 
   children, 
   title,
+  hideTitle = false, // New prop to hide the title
+  transparent = false, // New prop to remove background and padding
   maxRows = 1,
   expandBreakpoint = '768px',
   itemsPerRow = 5,
@@ -158,27 +160,32 @@ const AccountsContainer = ({
     : "flex flex-wrap gap-4 overflow-visible";
   
   return (
-    <div className={`w-full relative bg-surface rounded-lg p-4 shadow-sm ${isAddMenuOpen ? 'z-50' : ''}`}
-      style={{ backgroundColor: theme.colors.surface }}>
-      <div className="flex justify-start items-center mb-4 gap-4">
-        {/* Edit Button */}
-        {editable && (
-          <div 
-            className={`flex items-center cursor-pointer px-3 py-1.5 rounded ${isEditing ? 'hover:bg-red-100' : 'hover:bg-blue-100'}`}
-            onClick={() => setIsEditing(!isEditing)}
-          >
-            <span className={`mr-2 ${isEditing ? 'text-red-600' : 'text-blue-600'}`}>
-              {isEditing ? '✓' : '✎'}
-            </span>
-            <span className={`text-sm font-medium ${isEditing ? 'text-red-600' : 'text-blue-600'}`}>
-              {isEditing ? 'Done' : 'Edit'}
-            </span>
-          </div>
-        )}
-        
-        {/* Title */}
-        {title && <h3 className="text-xl font-normal m-0">{title}</h3>}
-      </div>
+    <div className={`w-full relative ${transparent ? '' : 'bg-surface rounded-lg p-4 shadow-sm'} ${isAddMenuOpen ? 'z-50' : ''}`}
+      style={transparent ? {} : { backgroundColor: theme.colors.surface }}>
+      {/* Only show header if there's title content or editable */}
+      {((!hideTitle && title) || editable) && (
+        <div className="flex justify-start items-center mb-4 gap-4">
+          {/* Edit Button */}
+          {editable && (
+            <div 
+              className={`flex items-center cursor-pointer px-3 py-1.5 rounded ${isEditing ? 'hover:bg-red-100' : 'hover:bg-blue-100'}`}
+              onClick={() => setIsEditing(!isEditing)}
+            >
+              <span className={`mr-2 ${isEditing ? 'text-red-600' : 'text-blue-600'}`}>
+                {isEditing ? '✓' : '✎'}
+              </span>
+              <span className={`text-sm font-medium ${isEditing ? 'text-red-600' : 'text-blue-600'}`}>
+                {isEditing ? 'Done' : 'Edit'}
+              </span>
+            </div>
+          )}
+          
+          {/* Only show title if hideTitle is false and title exists */}
+          {!hideTitle && title && (
+            <h3 className="text-xl font-normal m-0">{title}</h3>
+          )}
+        </div>
+      )}
       
       {/* Edit Instructions */}
       {isEditing && (
@@ -205,6 +212,8 @@ const AccountsContainer = ({
 AccountsContainer.propTypes = {
   children: PropTypes.node.isRequired,
   title: PropTypes.string,
+  hideTitle: PropTypes.bool,
+  transparent: PropTypes.bool,
   maxRows: PropTypes.number,
   expandBreakpoint: PropTypes.string,
   itemsPerRow: PropTypes.number,

@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useTheme } from './theme/ThemeContext'
-import { AccountCard, AccountsContainer, availablePlatforms, Calendar } from './components'
+import { AccountCard, AccountsContainer, availablePlatforms, Calendar, PostEditor } from './components'
 import CalendarEvent from './components/Calendar/CalendarEvent'
 
 function App() {
   const theme = useTheme()
   const [selectedAccounts, setSelectedAccounts] = useState([]);
+  const [selectedAccountDetails, setSelectedAccountDetails] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [accounts, setAccounts] = useState([
     { id: 1, name: "Alice Smith", platform: "instagram", tooltipText: "Follow Alice on Instagram" },
@@ -101,15 +102,22 @@ function App() {
     spacing: theme.spacing.md
   }
 
-  // Handle selection in first container
-  const handleSelection = (accountId) => {
-    setSelectedAccounts(prev => {
-      if (prev.includes(accountId)) {
-        return prev.filter(id => id !== accountId);
-      } else {
-        return [...prev, accountId];
-      }
+  // Handle selection in first container with detailed account information
+  const handleAccountSelection = (selectedItems) => {
+    // Store the selected account IDs
+    setSelectedAccounts(selectedItems.map(item => item.id));
+    
+    // Store the full account details of selected items
+    const selectedDetails = selectedItems.map(item => {
+      // Find the complete account object using the id
+      const accountObj = accounts.find(acc => acc.id === item.id);
+      return accountObj || item.props;
     });
+    
+    setSelectedAccountDetails(selectedDetails);
+    
+    // For debugging
+    console.log('Selected accounts:', selectedDetails);
   };
 
   const handleAccountAdd = (platform) => {
@@ -150,47 +158,44 @@ function App() {
     <div className="w-full mx-auto">
       <h1 className="text-3xl font-bold mb-8 text-center text-primary">Social Media Widgets</h1>
       
-      <section className="mb-10 p-6 bg-surface rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-2 text-primary">Selectable and Editable Accounts Container</h2>
-        <p className="mb-4 text-secondary">
-          This container displays social media profiles that can be selected and edited. 
-          Click to select/deselect accounts, and use the edit button to remove accounts or add new ones.
+      {/* Social Media Post Creation Section */}
+      <section className="mb-10 p-6 bg-white dark:bg-gray-800 rounded-lg shadow">
+        <h2 className="text-xl font-semibold mb-2">Social Media Post Creator</h2>
+        <p className="mb-4 text-gray-600 dark:text-gray-300">
+          Create and preview content for your social media accounts. Select accounts below first, then create your post.
         </p>
         
-        <AccountsContainer 
-          title="Your Social Media Connections" 
-          maxRows={2} 
-          expandBreakpoint="768px"
-          itemsPerRow={4}
-          selectable={true}
-          onSelectionChange={(selected) => setSelectedAccounts(selected)}
-          editable={true}
-          showAddButton={true}
-          onAccountAdd={handleAccountAdd}
-          onAccountRemove={handleAccountRemove}
-          displayMode="grid"
-          scrollable={false} // Will wrap to multiple rows
-        >
-          {accounts.map(account => (
-            <AccountCard 
-              key={account.id}
-              id={account.id}
-              name={account.name}
-              tooltipText={account.tooltipText}
-              avatar={`https://i.pravatar.cc/150?img=${account.id}`}
-              platform={account.platform}
-            />
-          ))}
-        </AccountsContainer>
-        
-        {selectedAccounts.length > 0 && (
-          <div className="mt-4 p-4 bg-gray-100 rounded-lg">
-            <p className="font-medium text-sm text-primary">Selected accounts: {selectedAccounts.length}</p>
-            <pre className="mt-2 p-3 bg-white rounded text-xs overflow-x-auto">
-              {JSON.stringify(selectedAccounts, null, 2)}
-            </pre>
-          </div>
-        )}
+        {/* Post Editor Component with integrated Account Selector */}
+        <PostEditor 
+          selectedAccounts={selectedAccountDetails} 
+          accountSelector={
+            <AccountsContainer 
+              maxRows={1} 
+              expandBreakpoint="768px"
+              itemsPerRow={6}
+              selectable={true}
+              onSelectionChange={handleAccountSelection}
+              editable={false}
+              showAddButton={false}
+              displayMode="row"
+              scrollable={true}
+              size="md"
+              hideTitle={true}
+              transparent={true} // New prop to remove background styling
+            >
+              {accounts.map(account => (
+                <AccountCard 
+                  key={account.id}
+                  id={account.id}
+                  name={account.name}
+                  tooltipText={account.tooltipText}
+                  avatar={`https://i.pravatar.cc/150?img=${account.id}`}
+                  platform={account.platform}
+                />
+              ))}
+            </AccountsContainer>
+          }
+        />
       </section>
       
       <section className="mb-10 p-6 bg-white dark:bg-gray-800 rounded-lg shadow">

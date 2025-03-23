@@ -3,3 +3,4 @@ export { default as AccountsContainer } from './AccountsContainer/AccountsContai
 export { default as ThemeDemo } from './ThemeDemo';
 export { default as SocialIcon, availablePlatforms } from './SocialIcons';
 export { default as Calendar } from './Calendar/Calendar';
+export { default as PostEditor } from './PostEditor';
