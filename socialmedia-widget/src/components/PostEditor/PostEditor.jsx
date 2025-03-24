@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useTheme } from '../../theme/ThemeContext';
 import EmojiPicker from './EmojiPicker';
 import { FaSmile, FaImage, FaEye, FaPen, FaHashtag, FaFont, FaTh, FaMapMarkerAlt, FaGlobe, 
-  FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaYoutube, FaTiktok, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+  FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaYoutube, FaTiktok, FaChevronLeft, FaChevronRight,
+  FaCalendarAlt, FaPaperPlane, FaSearch, FaVideo, FaTimes, FaSave } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 
 // Add custom scrollbar styling
@@ -57,7 +58,7 @@ const scrollbarStyles = `
  * @param {Array} props.selectedAccounts - Array of selected social media accounts
  * @param {React.ReactNode} props.accountSelector - Optional account selector component
  */
-const PostEditor = ({ selectedAccounts = [], accountSelector = null }) => {
+const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = () => {}, onSchedule = () => {}, onSaveDraft = () => {} }) => {
   // Insert style element for custom scrollbar
   useEffect(() => {
     const styleElement = document.createElement('style');
@@ -77,8 +78,38 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showHashtagPicker, setShowHashtagPicker] = useState(false);
   const [location, setLocation] = useState('');
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [locationResults, setLocationResults] = useState([
+    "New York, NY, USA",
+    "Los Angeles, CA, USA",
+    "Chicago, IL, USA",
+    "San Francisco, CA, USA",
+    "Miami, FL, USA",
+    "London, UK",
+    "Paris, France",
+    "Berlin, Germany",
+    "Tokyo, Japan",
+    "Sydney, Australia"
+  ]);
+  
   const fileInputRef = useRef(null);
+  const videoInputRef = useRef(null);
   const captionInputRef = useRef(null);
+  const locationInputRef = useRef(null);
+  
+  // Close location picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (locationInputRef.current && !locationInputRef.current.contains(event.target)) {
+        setShowLocationPicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
   
   // Auto-show preview when accounts are selected
   useEffect(() => {
@@ -450,14 +481,59 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null }) => {
           </div>
         </div>
         
-        {/* Post Image */}
-        <div className="aspect-square bg-black">
+        {/* Post Image with carousel */}
+        <div className="aspect-square bg-black relative">
           {media.length > 0 ? (
-            <img 
-              src={media[selectedMediaIndex !== null ? selectedMediaIndex : 0]} 
-              alt="Post media" 
-              className="w-full h-full object-cover"
-            />
+            <>
+              <img 
+                src={media[selectedMediaIndex !== null ? selectedMediaIndex : 0]} 
+                alt="Post media" 
+                className="w-full h-full object-cover"
+              />
+              
+              {/* Media count indicator for Instagram */}
+              {media.length > 1 && (
+                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs rounded px-1.5 py-0.5">
+                  {selectedMediaIndex !== null ? selectedMediaIndex + 1 : 1}/{media.length}
+                </div>
+              )}
+              
+              {/* Media navigation arrows */}
+              {media.length > 1 && (
+                <>
+                  <button 
+                    onClick={goToPrevMedia}
+                    className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  <button 
+                    onClick={goToNextMedia}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </>
+              )}
+              
+              {/* Media indicator dots */}
+              {media.length > 1 && (
+                <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+                  {media.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={(e) => selectMediaDot(index, e)}
+                      className={`w-2 h-2 rounded-full ${selectedMediaIndex === index ? 'bg-blue-500' : 'bg-white/70'}`}
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           ) : (
             <div className="w-full h-full aspect-square bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
               <FaImage className="h-10 w-10 text-gray-400 dark:text-gray-600" />
@@ -535,14 +611,59 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null }) => {
           </div>
         )}
         
-        {/* Post Image - if available */}
+        {/* Post Image - if available with carousel */}
         {media.length > 0 && (
-          <div className="border-t border-b border-gray-200 dark:border-gray-700">
-            <img 
-              src={media[selectedMediaIndex !== null ? selectedMediaIndex : 0]} 
-              alt="Post media" 
-              className="w-full object-cover"
-            />
+          <div className="border-t border-b border-gray-200 dark:border-gray-700 relative">
+            <div className="aspect-[4/3] bg-black">
+              <img 
+                src={media[selectedMediaIndex !== null ? selectedMediaIndex : 0]} 
+                alt="Post media" 
+                className="w-full h-full object-cover"
+              />
+              
+              {/* Media count indicator */}
+              {media.length > 1 && (
+                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs rounded px-1.5 py-0.5">
+                  {selectedMediaIndex !== null ? selectedMediaIndex + 1 : 1}/{media.length}
+                </div>
+              )}
+              
+              {/* Media navigation arrows */}
+              {media.length > 1 && (
+                <>
+                  <button 
+                    onClick={goToPrevMedia}
+                    className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  <button 
+                    onClick={goToNextMedia}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </>
+              )}
+              
+              {/* Media indicator dots */}
+              {media.length > 1 && (
+                <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+                  {media.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={(e) => selectMediaDot(index, e)}
+                      className={`w-2 h-2 rounded-full ${selectedMediaIndex === index ? 'bg-blue-500' : 'bg-white/70'}`}
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
         
@@ -620,14 +741,59 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null }) => {
               </div>
             )}
             
-            {/* Post Image - if available */}
+            {/* Post Image - if available, with carousel */}
             {media.length > 0 && (
-              <div className="mt-2 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
-                <img 
-                  src={media[selectedMediaIndex !== null ? selectedMediaIndex : 0]} 
-                  alt="Post media" 
-                  className="w-full object-cover"
-                />
+              <div className="mt-2 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 relative">
+                <div className="aspect-[16/9] bg-black">
+                  <img 
+                    src={media[selectedMediaIndex !== null ? selectedMediaIndex : 0]} 
+                    alt="Post media" 
+                    className="w-full h-full object-cover"
+                  />
+                  
+                  {/* Media count indicator */}
+                  {media.length > 1 && (
+                    <div className="absolute top-2 right-2 bg-black/70 text-white text-xs rounded px-1.5 py-0.5">
+                      {selectedMediaIndex !== null ? selectedMediaIndex + 1 : 1}/{media.length}
+                    </div>
+                  )}
+                  
+                  {/* Media navigation arrows */}
+                  {media.length > 1 && (
+                    <>
+                      <button 
+                        onClick={goToPrevMedia}
+                        className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                      <button 
+                        onClick={goToNextMedia}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    </>
+                  )}
+                  
+                  {/* Media indicator dots */}
+                  {media.length > 1 && (
+                    <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+                      {media.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={(e) => selectMediaDot(index, e)}
+                          className={`w-2 h-2 rounded-full ${selectedMediaIndex === index ? 'bg-blue-500' : 'bg-white/70'}`}
+                          aria-label={`Go to slide ${index + 1}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
             
@@ -701,14 +867,59 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null }) => {
           </div>
         )}
         
-        {/* Post Image - if available */}
+        {/* Post Image - if available with carousel */}
         {media.length > 0 && (
-          <div className="border-t border-b border-gray-200 dark:border-gray-700">
-            <img 
-              src={media[selectedMediaIndex !== null ? selectedMediaIndex : 0]} 
-              alt="Post media" 
-              className="w-full object-cover"
-            />
+          <div className="border-t border-b border-gray-200 dark:border-gray-700 relative">
+            <div className="aspect-video bg-black">
+              <img 
+                src={media[selectedMediaIndex !== null ? selectedMediaIndex : 0]} 
+                alt="Post media" 
+                className="w-full h-full object-cover"
+              />
+              
+              {/* Media count indicator */}
+              {media.length > 1 && (
+                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs rounded px-1.5 py-0.5">
+                  {selectedMediaIndex !== null ? selectedMediaIndex + 1 : 1}/{media.length}
+                </div>
+              )}
+              
+              {/* Media navigation arrows */}
+              {media.length > 1 && (
+                <>
+                  <button 
+                    onClick={goToPrevMedia}
+                    className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  <button 
+                    onClick={goToNextMedia}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </>
+              )}
+              
+              {/* Media indicator dots */}
+              {media.length > 1 && (
+                <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+                  {media.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={(e) => selectMediaDot(index, e)}
+                      className={`w-2 h-2 rounded-full ${selectedMediaIndex === index ? 'bg-blue-500' : 'bg-white/70'}`}
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
         
@@ -762,14 +973,59 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null }) => {
     
     return (
       <div className="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-black mx-auto">
-        <div className="aspect-[9/16] relative">
-          {/* Video Preview */}
+        <div className="aspect-[4/5] max-h-[400px] relative">
+          {/* Video Preview with carousel */}
           {media.length > 0 ? (
-            <img 
-              src={media[selectedMediaIndex !== null ? selectedMediaIndex : 0]} 
-              alt="Post media" 
-              className="absolute inset-0 w-full h-full object-cover"
-            />
+            <>
+              <img 
+                src={media[selectedMediaIndex !== null ? selectedMediaIndex : 0]} 
+                alt="Post media" 
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              
+              {/* Media count indicator */}
+              {media.length > 1 && (
+                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs rounded px-1.5 py-0.5">
+                  {selectedMediaIndex !== null ? selectedMediaIndex + 1 : 1}/{media.length}
+                </div>
+              )}
+              
+              {/* Media navigation arrows */}
+              {media.length > 1 && (
+                <>
+                  <button 
+                    onClick={goToPrevMedia}
+                    className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  <button 
+                    onClick={goToNextMedia}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </>
+              )}
+              
+              {/* Media indicator dots */}
+              {media.length > 1 && (
+                <div className="absolute bottom-14 left-0 right-0 flex justify-center gap-1">
+                  {media.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={(e) => selectMediaDot(index, e)}
+                      className={`w-2 h-2 rounded-full ${selectedMediaIndex === index ? 'bg-[#FE2C55]' : 'bg-white/70'}`}
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           ) : (
             <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
               <FaImage className="h-16 w-16 text-gray-600" />
@@ -839,17 +1095,71 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null }) => {
     
     return (
       <div className="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900 mx-auto">
-        {/* Video Thumbnail */}
+        {/* Video Thumbnail with carousel */}
         <div className="relative aspect-video bg-black">
           {media.length > 0 ? (
-            <img 
-              src={media[selectedMediaIndex !== null ? selectedMediaIndex : 0]} 
-              alt="Video thumbnail" 
-              className="w-full h-full object-cover"
-            />
+            <>
+              <img 
+                src={media[selectedMediaIndex !== null ? selectedMediaIndex : 0]} 
+                alt="Video thumbnail" 
+                className="w-full h-full object-cover"
+              />
+              
+              {/* Media count indicator */}
+              {media.length > 1 && (
+                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs rounded px-1.5 py-0.5">
+                  {selectedMediaIndex !== null ? selectedMediaIndex + 1 : 1}/{media.length}
+                </div>
+              )}
+              
+              {/* Media navigation arrows */}
+              {media.length > 1 && (
+                <>
+                  <button 
+                    onClick={goToPrevMedia}
+                    className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  <button 
+                    onClick={goToNextMedia}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </>
+              )}
+              
+              {/* Media indicator dots */}
+              {media.length > 1 && (
+                <div className="absolute bottom-12 left-0 right-0 flex justify-center gap-1">
+                  {media.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={(e) => selectMediaDot(index, e)}
+                      className={`w-2 h-2 rounded-full ${selectedMediaIndex === index ? 'bg-red-600' : 'bg-white/70'}`}
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+              
+              {/* Play button overlay */}
+              <div className="absolute inset-0 flex items-center justify-center group">
+                <div className="w-14 h-14 bg-black/70 rounded-full flex items-center justify-center group-hover:bg-red-600 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-white ml-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+            </>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
-              <FaYoutube className="h-16 w-16 text-red-600" />
+              <FaYoutube className="h-14 w-14 text-red-600" />
             </div>
           )}
           
@@ -959,6 +1269,103 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null }) => {
     return accountsByPlatform[activePlatform];
   }, [activePlatform, accountsByPlatform]);
 
+  // Handle post now action
+  const handlePostNow = () => {
+    const postData = {
+      caption,
+      media,
+      location,
+      accounts: selectedAccounts,
+      timestamp: new Date()
+    };
+    
+    onPost(postData);
+  };
+  
+  // Handle schedule action
+  const handleSchedule = () => {
+    const postData = {
+      caption,
+      media,
+      location,
+      accounts: selectedAccounts
+    };
+    
+    onSchedule(postData);
+  };
+
+  // Handle save draft action
+  const handleSaveDraft = () => {
+    const draftData = {
+      caption,
+      media,
+      location,
+      timestamp: new Date()
+    };
+    
+    onSaveDraft(draftData);
+  };
+
+  // Handle location search
+  const handleLocationSearch = (e) => {
+    setLocation(e.target.value);
+    setShowLocationPicker(true);
+    
+    // In a real app, this would call an API to get location results
+    // For demo, we're just filtering our static array
+    if (e.target.value.trim()) {
+      const filtered = locationResults.filter(
+        loc => loc.toLowerCase().includes(e.target.value.toLowerCase())
+      );
+      setLocationResults(filtered.length > 0 ? filtered : ["No results found"]);
+    } else {
+      // Reset to default locations
+      setLocationResults([
+        "New York, NY, USA",
+        "Los Angeles, CA, USA",
+        "Chicago, IL, USA",
+        "San Francisco, CA, USA",
+        "Miami, FL, USA",
+        "London, UK",
+        "Paris, France",
+        "Berlin, Germany",
+        "Tokyo, Japan",
+        "Sydney, Australia"
+      ]);
+    }
+  };
+
+  // Select a location from results
+  const selectLocation = (loc) => {
+    setLocation(loc);
+    setShowLocationPicker(false);
+  };
+  
+  // Clear location
+  const clearLocation = () => {
+    setLocation("");
+  };
+
+  // After the clearLocation function, add these media navigation functions
+  const goToPrevMedia = (e) => {
+    e && e.stopPropagation();
+    if (media.length <= 1) return;
+    setSelectedMediaIndex(prev => prev > 0 ? prev - 1 : media.length - 1);
+  };
+
+  const goToNextMedia = (e) => {
+    e && e.stopPropagation();
+    if (media.length <= 1) return;
+    setSelectedMediaIndex(prev => prev < media.length - 1 ? prev + 1 : 0);
+  };
+
+  const selectMediaDot = (index, e) => {
+    e && e.stopPropagation();
+    if (index >= 0 && index < media.length) {
+      setSelectedMediaIndex(index);
+    }
+  };
+
   return (
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
       <div className="p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
@@ -998,15 +1405,15 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null }) => {
         </div>
       </div>
       
-      <div className={`flex flex-col md:flex-row ${showPreview ? '' : ''} divide-gray-200 dark:divide-gray-700`}>
-        {/* Editor Panel - Always visible */}
-        <div className={`p-4 ${showPreview ? 'md:w-3/4' : 'w-full'}`}>
-          {/* Content Composition Area */}
-          <div className="mb-4">
+      <div className={`flex flex-col md:flex-row divide-gray-200 dark:divide-gray-700`}>
+        {/* Editor Panel */}
+        <div className={`p-4 ${showPreview ? 'md:w-3/5' : 'w-full'}`}>
+          {/* Content Composition Area - NOW FIRST */}
+          <div className="mb-6">
             <div className="border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 bg-white dark:bg-gray-800">
               <textarea
                 ref={captionInputRef}
-                className="w-full px-3 py-3 text-gray-700 dark:text-gray-300 border-none rounded-t-lg focus:outline-none bg-white dark:bg-gray-800 resize-none min-h-[120px]"
+                className="w-full px-3 py-4 text-gray-700 dark:text-gray-300 border-none rounded-t-lg focus:outline-none bg-white dark:bg-gray-800 resize-none min-h-[180px]"
                 placeholder="Write your post... Use #hashtags and {{placeholders}} for dynamic content"
                 value={caption}
                 onChange={handleCaptionChange}
@@ -1035,16 +1442,10 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null }) => {
                   <FaFont />
                 </button>
                 
-                <button 
-                  className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-700 dark:text-gray-300"
-                >
-                  <FaTh />
-                </button>
-                
                 <div className="flex-grow"></div>
                 
                 <div className="px-2 text-sm text-gray-500 dark:text-gray-400">
-                  {charCount}
+                  {charCount} characters
                 </div>
               </div>
             </div>
@@ -1083,88 +1484,159 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null }) => {
             )}
           </div>
           
-          {/* Media Attachments Section */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Media
-            </label>
+          {/* Media Attachments Section - NOW BELOW TEXT INPUT */}
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Media
+              </label>
+              <div className="flex gap-2">
+                {media.length < 5 && (
+                  <>
+                    <button
+                      onClick={() => fileInputRef.current.click()}
+                      className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-200 text-xs flex items-center"
+                    >
+                      <FaImage className="mr-1" /> Add Image
+                      <input 
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleMediaChange}
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                      />
+                    </button>
+                    <button
+                      onClick={() => videoInputRef.current.click()}
+                      className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-200 text-xs flex items-center"
+                    >
+                      <FaVideo className="mr-1" /> Add Video
+                      <input 
+                        type="file"
+                        ref={videoInputRef}
+                        onChange={(e) => handleMediaChange(e, 'video')}
+                        accept="video/*"
+                        className="hidden"
+                      />
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
             
-            <div className="flex flex-wrap gap-2">
-              {/* Media thumbnails */}
-              {media.map((src, index) => (
-                <div 
-                  key={index} 
-                  className={`relative w-24 h-24 border-2 rounded-lg overflow-hidden cursor-pointer transition-all
-                    ${selectedMediaIndex === index ? 'border-blue-500 shadow-md scale-105' : 'border-gray-300 dark:border-gray-600'}`}
-                  onClick={() => selectMedia(index)}
-                >
-                  <img src={src} alt={`Media ${index + 1}`} className="w-full h-full object-cover" />
-                  <button
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-80 hover:opacity-100"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeMedia(index);
-                    }}
-                  >
-                    ×
-                  </button>
+            {/* Media preview area */}
+            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 min-h-[120px] bg-gray-50 dark:bg-gray-700/50">
+              {media.length > 0 ? (
+                <div className="flex flex-wrap gap-3">
+                  {media.map((src, index) => (
+                    <div 
+                      key={index} 
+                      className={`relative w-24 h-24 border-2 rounded-lg overflow-hidden cursor-pointer transition-all
+                        ${selectedMediaIndex === index ? 'border-blue-500 shadow-md scale-105' : 'border-gray-300 dark:border-gray-600'}`}
+                      onClick={() => selectMedia(index)}
+                    >
+                      <img src={src} alt={`Media ${index + 1}`} className="w-full h-full object-cover" />
+                      <button
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-80 hover:opacity-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeMedia(index);
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-              
-              {/* Add media button - only show if less than 5 images */}
-              {media.length < 5 && (
-                <div 
-                  className="w-24 h-24 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                  onClick={handleMediaButtonClick}
-                >
-                  <FaImage className="text-gray-400 text-xl" />
-                  <input 
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleMediaChange}
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                  />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-32 text-gray-400">
+                  <FaImage className="text-4xl mb-2" />
+                  <p className="text-sm">Add images or videos to your post</p>
                 </div>
               )}
             </div>
           </div>
           
-          {/* Location & Posting Controls */}
-          <div className="flex flex-wrap items-center gap-2 mt-4">
-            <div className="flex-grow flex items-center bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2">
-              <FaMapMarkerAlt className="text-gray-500 mr-2" />
-              <input
-                type="text"
-                className="bg-transparent border-none focus:outline-none text-gray-700 dark:text-gray-300 w-full"
-                placeholder="Add location"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-              />
-              <FaGlobe className="text-gray-500 ml-2" />
+          {/* Post Controls - Redesigned with inline location */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Narrower Location Input - Now inline with buttons */}
+            <div className="relative md:w-1/3 max-w-xs flex-shrink-0" ref={locationInputRef}>
+              <div className="flex items-center bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 h-10">
+                <FaMapMarkerAlt className="text-gray-500 mr-2 flex-shrink-0" />
+                <input
+                  type="text"
+                  className="bg-transparent border-none focus:outline-none text-gray-700 dark:text-gray-300 w-full text-sm"
+                  placeholder="Add location"
+                  value={location}
+                  onChange={handleLocationSearch}
+                  onClick={() => setShowLocationPicker(true)}
+                />
+                {location && (
+                  <button 
+                    className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400"
+                    onClick={clearLocation}
+                  >
+                    <FaTimes />
+                  </button>
+                )}
+              </div>
+              
+              {/* Location Results Dropdown */}
+              {showLocationPicker && (
+                <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 z-10">
+                  <div className="max-h-48 overflow-y-auto p-1">
+                    {locationResults.map((loc, index) => (
+                      <div
+                        key={index}
+                        className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer flex items-center text-sm"
+                        onClick={() => selectLocation(loc)}
+                      >
+                        <FaMapMarkerAlt className="text-gray-500 mr-2 flex-shrink-0" />
+                        <span>{loc}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             
+            <div className="flex-grow"></div>
+            
+            {/* Save Draft Button */}
             <button 
-              onClick={clearContent}
-              className="px-3 py-2 bg-red-50 dark:bg-red-900/30 rounded-md hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors text-red-600 dark:text-red-400"
+              onClick={handleSaveDraft}
+              className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors flex items-center font-medium"
             >
-              Clear
+              <FaSave className="mr-2" />
+              Save Draft
             </button>
             
+            {/* Schedule Button */}
             <button 
-              onClick={togglePreview}
-              className="px-3 py-2 bg-blue-500 dark:bg-blue-600 rounded-md hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors text-white flex items-center"
+              onClick={handleSchedule}
+              disabled={selectedAccounts.length === 0}
+              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors flex items-center font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {showPreview ? <FaPen className="mr-2" /> : <FaEye className="mr-2" />}
-              {showPreview ? 'Edit' : 'Preview'}
+              <FaCalendarAlt className="mr-2" />
+              Schedule
+            </button>
+            
+            {/* Post Now Button */}
+            <button 
+              onClick={handlePostNow}
+              disabled={selectedAccounts.length === 0}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FaPaperPlane className="mr-2" />
+              Post Now
             </button>
           </div>
         </div>
         
-        {/* Preview Panel - Only visible when preview is enabled */}
+        {/* Preview Panel */}
         {showPreview && (
-          <div className="p-4 md:w-1/4 border-l border-gray-200 dark:border-gray-700 flex flex-col h-full">
+          <div className="p-4 md:w-2/5 border-l border-gray-200 dark:border-gray-700 flex flex-col h-full">
             {/* Platform Navigation - Only show when multiple platforms are available */}
             {availablePlatforms.length > 1 && (
               <div className="flex justify-between items-center mb-3 flex-shrink-0">
@@ -1184,9 +1656,7 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null }) => {
                       })}
                     </div>
                   )}
-                  <span className="text-sm font-medium capitalize">
-                    {activePlatform || 'Preview'} ({availablePlatforms.indexOf(activePlatform) + 1}/{availablePlatforms.length})
-                  </span>
+                  <span className="text-sm font-medium capitalize">{activePlatform || 'Preview'} ({availablePlatforms.indexOf(activePlatform) + 1}/{availablePlatforms.length})</span>
                 </div>
                 
                 <button 
@@ -1287,3 +1757,4 @@ const getPlatformColor = (platform = '') => {
 };
 
 export default PostEditor;
+ 

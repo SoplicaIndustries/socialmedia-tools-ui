@@ -154,6 +154,50 @@ function App() {
     alert(`Selected date: ${date.toLocaleDateString()}`);
   };
 
+  // Handle post now action
+  const handlePost = (postData) => {
+    // Example of handling a post now action
+    const accountNames = postData.accounts.map(acc => acc.name).join(', ');
+    const mediaCount = postData.media.length;
+    
+    alert(`Post published to ${accountNames}!\n${mediaCount} media items included.\nCaption: ${postData.caption.substring(0, 50)}${postData.caption.length > 50 ? '...' : ''}`);
+    
+    console.log("Post published:", postData);
+  };
+
+  // Handle schedule action
+  const handleSchedule = (postData) => {
+    // Show a date picker (simplified with just an alert in this example)
+    const scheduledDate = new Date();
+    scheduledDate.setHours(scheduledDate.getHours() + 2); // Schedule for 2 hours from now
+    
+    // Create a new calendar event
+    const newEvent = new CalendarEvent({
+      id: `event-${Date.now()}`,
+      description: postData.caption.substring(0, 100) + (postData.caption.length > 100 ? '...' : ''),
+      startTime: scheduledDate,
+      color: "#10B981", // green
+      services: postData.accounts.map(acc => acc.platform)
+    });
+    
+    // Add to calendar events
+    const updatedEvents = [...calendarEvents, newEvent];
+    
+    // In a real app, you'd update state here
+    // setCalendarEvents(updatedEvents);
+    
+    alert(`Post scheduled for ${scheduledDate.toLocaleString()}!\nCheck the calendar to view and manage your scheduled post.`);
+    
+    console.log("Post scheduled:", postData, "Event created:", newEvent);
+  };
+
+  // Handle save draft action
+  const handleSaveDraft = (draftData) => {
+    alert(`Draft saved:\n${draftData.caption.substring(0, 50)}${draftData.caption.length > 50 ? '...' : ''}\nMedia items: ${draftData.media.length}`);
+    
+    console.log("Draft saved:", draftData);
+  };
+
   return (
     <div className="w-full mx-auto">
       <h1 className="text-3xl font-bold mb-8 text-center text-primary">Social Media Widgets</h1>
@@ -168,6 +212,9 @@ function App() {
         {/* Post Editor Component with integrated Account Selector */}
         <PostEditor 
           selectedAccounts={selectedAccountDetails} 
+          onPost={handlePost}
+          onSchedule={handleSchedule}
+          onSaveDraft={handleSaveDraft}
           accountSelector={
             <AccountsContainer 
               maxRows={1} 
