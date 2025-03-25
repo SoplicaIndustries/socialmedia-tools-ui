@@ -207,40 +207,42 @@ function App() {
           Create and preview content for your social media accounts. Select accounts below first, then create your post.
         </p>
         
-        {/* Post Editor Component with integrated Account Selector */}
-        <PostEditor 
-          selectedAccounts={selectedAccountDetails} 
-          onPost={handlePost}
-          onSchedule={handleSchedule}
-          onSaveDraft={handleSaveDraft}
-          accountSelector={
-            <AccountsContainer 
-              maxRows={1} 
-              expandBreakpoint="768px"
-              itemsPerRow={6}
-              selectable={true}
-              onSelectionChange={handleAccountSelection}
-              editable={false}
-              showAddButton={false}
-              displayMode="row"
-              scrollable={true}
-              size="md"
-              hideTitle={true}
-              transparent={true} // New prop to remove background styling
-            >
-              {accounts.map(account => (
-                <AccountCard 
-                  key={account.id}
-                  id={account.id}
-                  name={account.name}
-                  tooltipText={account.tooltipText}
-                  avatar={`https://i.pravatar.cc/150?img=${account.id}`}
-                  platform={account.platform}
-                />
-              ))}
-            </AccountsContainer>
-          }
-        />
+        {/* Updated container with height settings that properly constrain PostEditor */}
+        <div className="h-[700px] relative">
+          <PostEditor 
+            selectedAccounts={selectedAccountDetails} 
+            onPost={handlePost}
+            onSchedule={handleSchedule}
+            onSaveDraft={handleSaveDraft}
+            accountSelector={
+              <AccountsContainer 
+                maxRows={1} 
+                expandBreakpoint="768px"
+                itemsPerRow={6}
+                selectable={true}
+                onSelectionChange={handleAccountSelection}
+                editable={false}
+                showAddButton={false}
+                displayMode="row"
+                scrollable={true}
+                size="md"
+                hideTitle={true}
+                transparent={true} // New prop to remove background styling
+              >
+                {accounts.map(account => (
+                  <AccountCard 
+                    key={account.id}
+                    id={account.id}
+                    name={account.name}
+                    tooltipText={account.tooltipText}
+                    avatar={`https://i.pravatar.cc/150?img=${account.id}`}
+                    platform={account.platform}
+                  />
+                ))}
+              </AccountsContainer>
+            }
+          />
+        </div>
       </section>
       
       

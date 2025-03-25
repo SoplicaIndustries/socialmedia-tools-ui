@@ -3,7 +3,7 @@ import { useTheme } from '../../theme/ThemeContext';
 import EmojiPicker from './EmojiPicker';
 import { FaSmile, FaImage, FaEye, FaPen, FaHashtag, FaFont, FaTh, FaMapMarkerAlt, FaGlobe, 
   FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaYoutube, FaTiktok, FaChevronLeft, FaChevronRight,
-  FaCalendarAlt, FaPaperPlane, FaSearch, FaVideo, FaTimes, FaSave } from 'react-icons/fa';
+  FaCalendarAlt, FaPaperPlane, FaSearch, FaVideo, FaTimes, FaSave, FaChevronDown } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { InstagramPreview, FacebookPreview, TwitterPreview, LinkedInPreview, TikTokPreview, YouTubePreview } from '../Preview';
 
@@ -644,12 +644,61 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = ()
     }
   };
 
+  // New state for tracking overflow and scroll position
+  const [hasOverflow, setHasOverflow] = useState(false);
+  const [isScrolledToBottom, setIsScrolledToBottom] = useState(false);
+  const previewScrollContainerRef = useRef(null);
+  
+  // Check for overflow in preview container
+  useEffect(() => {
+    const checkOverflow = () => {
+      const container = previewScrollContainerRef.current;
+      if (container) {
+        const hasVerticalOverflow = container.scrollHeight > container.clientHeight;
+        setHasOverflow(hasVerticalOverflow);
+        
+        // Check if scrolled to bottom
+        const isAtBottom = Math.abs((container.scrollHeight - container.scrollTop) - container.clientHeight) < 20;
+        setIsScrolledToBottom(isAtBottom);
+      }
+    };
+    
+    // Check initially and when content might change
+    checkOverflow();
+    window.addEventListener('resize', checkOverflow);
+    
+    return () => {
+      window.removeEventListener('resize', checkOverflow);
+    };
+  }, [media, activeAccounts, activePlatform]);
+  
+  // Track scroll position to update UI
+  const handleScroll = () => {
+    const container = previewScrollContainerRef.current;
+    if (container) {
+      const isAtBottom = Math.abs((container.scrollHeight - container.scrollTop) - container.clientHeight) < 20;
+      setIsScrolledToBottom(isAtBottom);
+    }
+  };
+  
+  // Scroll to the bottom when arrow is clicked
+  const scrollToBottom = () => {
+    const container = previewScrollContainerRef.current;
+    if (container) {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
-    <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col">
-      {/* Header with title */}
-      <div className="p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Post Editor</h2>
+    <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col h-full">
+      {/* Header section */}
+      <div className="flex border-b border-gray-200 dark:border-gray-600 flex-shrink-0">
+        {/* Left section - accounts display */}
+        <div className={`p-4 bg-gray-50 dark:bg-gray-700 ${showPreview ? 'md:w-3/5' : 'w-full'} flex items-center border-r border-gray-200 dark:border-gray-600`}>
+          {/* Only showing "Posting to" with account avatars */}
           {selectedAccounts.length > 0 && (
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-600 dark:text-gray-300">Posting to:</span>
@@ -672,20 +721,59 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = ()
             </div>
           )}
         </div>
+        
+        {/* Right section - full width platform switcher */}
+        {showPreview && (
+          <div className="md:w-2/5 bg-gray-50 dark:bg-gray-700 flex items-center justify-center">
+            {/* Platform switcher now takes full width */}
+            {availablePlatforms.length > 1 && (
+              <div className="flex items-center justify-center w-full px-4 py-3">
+                <button 
+                  onClick={goToPreviousPlatform}
+                  className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300"
+                >
+                  <FaChevronLeft size={14} />
+                </button>
+                
+                <div className="flex-grow mx-4 text-center">
+                  {activePlatform && (
+                    <div className="flex items-center justify-center">
+                      <div className="h-5 w-5 mr-2">
+                        {React.createElement(getPlatformIcon(activePlatform), {
+                          className: "h-full w-full",
+                          style: { color: getPlatformColor(activePlatform) }
+                        })}
+                      </div>
+                      <span className="text-sm font-medium capitalize">{activePlatform}</span>
+                    </div>
+                  )}
+                </div>
+                
+                <button 
+                  onClick={goToNextPlatform}
+                  className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300"
+                >
+                  <FaChevronRight size={14} />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       
-      <div className="flex flex-col md:flex-row h-full">
+      {/* Main content area - Using flex with h-full to fill available space */}
+      <div className="flex flex-col md:flex-row flex-grow overflow-hidden">
         {/* Editor Panel */}
-        <div className={`flex flex-col ${showPreview ? 'md:w-3/5' : 'w-full'}`}>
-          {/* Account Selector - Moved inside editor column */}
+        <div className={`flex flex-col ${showPreview ? 'md:w-3/5' : 'w-full'} overflow-hidden`}>
+          {/* Account Selector - Now with flex-shrink-0 to prevent shrinking */}
           {accountSelector && (
-            <div className="p-4 border-b border-gray-200 dark:border-gray-600">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-600 flex-shrink-0">
               {accountSelector}
             </div>
           )}
           
-          {/* Editor Content */}
-          <div className="p-4 flex-grow overflow-y-auto">
+          {/* Editor Content - Using flex-grow to take available space */}
+          <div className="p-4 flex-grow overflow-y-auto custom-scrollbar">
             {/* Content Composition Area */}
             <div className="mb-6">
               <div className="border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 bg-white dark:bg-gray-800">
@@ -837,8 +925,8 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = ()
             </div>
           </div>
           
-          {/* Post Controls - Bottom of the editor section */}
-          <div className="p-4 border-t border-gray-200 dark:border-gray-600">
+          {/* Post Controls - Bottom of the editor section with flex-shrink-0 */}
+          <div className="p-4 border-t border-gray-200 dark:border-gray-600 flex-shrink-0">
             <div className="flex flex-wrap items-center gap-3">
               {/* Narrower Location Input - Now inline with buttons */}
               <div className="relative md:w-1/3 max-w-xs flex-shrink-0" ref={locationInputRef}>
@@ -915,49 +1003,18 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = ()
           </div>
         </div>
         
-        {/* Preview Panel - Now full height */}
+        {/* Preview Panel - Fixed to not exceed container height */}
         {showPreview && (
-          <div className="md:w-2/5 border-l border-gray-200 dark:border-gray-700 flex flex-col h-full overflow-hidden">
-            {/* Platform Navigation - Only show when multiple platforms are available */}
-            <div className="flex-shrink-0 p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-              {availablePlatforms.length > 1 && (
-                <div className="flex justify-between items-center mb-3 flex-shrink-0">
-                  <button 
-                    onClick={goToPreviousPlatform}
-                    className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-                  >
-                    <FaChevronLeft className="text-gray-600 dark:text-gray-300" />
-                  </button>
-                  
-                  <div className="flex items-center">
-                    {activePlatform && (
-                      <div className="h-6 w-6 mr-1">
-                        {React.createElement(getPlatformIcon(activePlatform), {
-                          className: "h-full w-full",
-                          style: { color: getPlatformColor(activePlatform) }
-                        })}
-                      </div>
-                    )}
-                    <span className="text-sm font-medium capitalize">{activePlatform || 'Preview'} ({availablePlatforms.indexOf(activePlatform) + 1}/{availablePlatforms.length})</span>
-                  </div>
-                  
-                  <button 
-                    onClick={goToNextPlatform}
-                    className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-                  >
-                    <FaChevronRight className="text-gray-600 dark:text-gray-300" />
-                  </button>
-                </div>
-              )}
-              
-              {/* Platform Account Tabs - Show when multiple accounts for the same platform */}
-              {activeAccounts.length > 1 && (
-                <div className="flex overflow-x-auto pb-1 scrollbar-thin flex-shrink-0">
+          <div className="md:w-2/5 border-l border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden">
+            {/* Platform Account Tabs - With flex-shrink-0 */}
+            {activeAccounts.length > 1 && (
+              <div className="flex-shrink-0 p-2 border-b border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 overflow-x-auto">
+                <div className="flex pb-1 scrollbar-thin">
                   {activeAccounts.map((account, index) => (
                     <button
                       key={index}
                       className={`flex-shrink-0 flex items-center px-2 py-1 mr-2 rounded-full text-xs ${
-                        index === 0  // Using first account as active for simplicity
+                        index === 0
                           ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-medium'
                           : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                       }`}
@@ -972,37 +1029,40 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = ()
                     </button>
                   ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
             
-            {/* Platform-specific Preview - Now with proper scrolling */}
-            <div className="flex-grow overflow-y-auto custom-scrollbar">
+            {/* Platform-specific Preview - Now with strict height limits and scroll indicator */}
+            <div 
+              ref={previewScrollContainerRef}
+              onScroll={handleScroll}
+              className="flex-grow overflow-y-auto custom-scrollbar relative"
+              style={{ minHeight: '0', maxHeight: '100%' }} // Strict height control
+            >
               <div className="p-4 space-y-4">
                 {activeAccounts.map((account, index) => (
                   <div key={index} className="relative">
-                    {index > 0 && (
-                      <div className="absolute -top-2 left-0 right-0 h-px bg-gray-200 dark:bg-gray-700"></div>
-                    )}
-                    
-                    <div className="mb-1 pb-1 flex items-center justify-between sticky top-0 bg-white dark:bg-gray-800 z-10 pt-2">
-                      <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                        <img 
-                          src={`https://i.pravatar.cc/150?img=${account.id || index + 11}`}
-                          alt={account.name}
-                          className="h-4 w-4 rounded-full mr-1"
-                        />
-                        {account.name}
-                      </span>
-                    </div>
-                    
+                    {/* No divider or account header anymore */}
                     {renderPlatformPreview(account)}
                   </div>
                 ))}
               </div>
+              
+              {/* Enhanced scroll indicator arrow - more visible */}
+              {hasOverflow && !isScrolledToBottom && (
+                <div 
+                  className="absolute bottom-4 left-1/2 transform -translate-x-1/2 animate-bounce cursor-pointer z-20"
+                  onClick={scrollToBottom}
+                >
+                  <div className="bg-gray-800/80 dark:bg-gray-600/90 text-white rounded-full p-2.5 shadow-lg">
+                    <FaChevronDown className="h-5 w-5" />
+                  </div>
+                </div>
+              )}
             </div>
             
-            {/* Platform-specific features message */}
-            <div className="p-4 text-xs text-center text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+            {/* Platform-specific features message - Now with flex-shrink-0 and matching padding */}
+            <div className="p-4 text-xs text-center text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 flex-shrink-0">
               {activePlatform === 'instagram' ? (
                 <p>Instagram supports images, videos, stories, and reels</p>
               ) : activePlatform === 'facebook' ? (
