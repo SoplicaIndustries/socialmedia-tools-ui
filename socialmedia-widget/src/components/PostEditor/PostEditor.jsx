@@ -5,6 +5,7 @@ import { FaSmile, FaImage, FaEye, FaPen, FaHashtag, FaFont, FaTh, FaMapMarkerAlt
   FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaYoutube, FaTiktok, FaChevronLeft, FaChevronRight,
   FaCalendarAlt, FaPaperPlane, FaSearch, FaVideo, FaTimes, FaSave } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
+import { InstagramPreview, FacebookPreview, TwitterPreview, LinkedInPreview, TikTokPreview, YouTubePreview } from '../Preview';
 
 // Add custom scrollbar styling
 const scrollbarStyles = `
@@ -173,7 +174,7 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = ()
   };
   
   // Handle media upload
-  const handleMediaChange = (e) => {
+  const handleMediaChange = (e, mediaType = 'image') => {
     if (e.target.files && e.target.files[0]) {
       const filesArray = Array.from(e.target.files);
       
@@ -182,19 +183,29 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = ()
         return new Promise((resolve) => {
           const reader = new FileReader();
           reader.onload = (e) => {
-            resolve(e.target.result);
+            // Store media type along with the data URL
+            resolve({
+              url: e.target.result,
+              type: file.type.startsWith('video/') ? 'video' : 'image',
+              file: file
+            });
           };
           reader.readAsDataURL(file);
         });
       });
       
       Promise.all(newMediaPromises).then(newMedia => {
-        setMedia(prev => [...prev, ...newMedia].slice(0, 5)); // Limit to 5 images total
+        setMedia(prev => [...prev, ...newMedia].slice(0, 5)); // Limit to 5 media items total
         if (selectedMediaIndex === null) {
-          setSelectedMediaIndex(0); // Select first image if none selected
+          setSelectedMediaIndex(0); // Select first item if none selected
         }
       });
     }
+  };
+  
+  // Helper function to check if a media item is a video
+  const isVideo = (mediaItem) => {
+    return mediaItem && mediaItem.type === 'video';
   };
   
   // Trigger file input click
@@ -437,769 +448,36 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = ()
   const renderPlatformPreview = (account) => {
     const platform = account?.platform?.toLowerCase() || 'instagram';
     
+    const commonProps = {
+      account,
+      caption,
+      media,
+      location,
+      selectedMediaIndex,
+      timestamp,
+      formatCaptionForPreview,
+      isVideo,
+      goToPrevMedia,
+      goToNextMedia,
+      selectMediaDot
+    };
+    
     switch (platform) {
       case 'facebook':
-        return renderFacebookPreview(account);
+        return <FacebookPreview {...commonProps} />;
       case 'twitter':
       case 'x':
-        return renderTwitterPreview(account);
+        return <TwitterPreview {...commonProps} />;
       case 'linkedin':
-        return renderLinkedInPreview(account);
+        return <LinkedInPreview {...commonProps} />;
       case 'tiktok':
-        return renderTikTokPreview(account);
+        return <TikTokPreview {...commonProps} />;
       case 'youtube':
-        return renderYouTubePreview(account);
+        return <YouTubePreview {...commonProps} />;
       case 'instagram':
       default:
-        return renderInstagramPreview(account);
+        return <InstagramPreview {...commonProps} />;
     }
-  };
-  
-  // Instagram preview (already implemented)
-  const renderInstagramPreview = (account) => {
-    const PlatformIcon = getPlatformIcon(account.platform);
-    
-    return (
-      <div className="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900 mx-auto">
-        {/* Post Header */}
-        <div className="flex items-center p-3">
-          <div className="h-8 w-8 rounded-full overflow-hidden mr-2">
-            <img 
-              src={`https://i.pravatar.cc/150?img=${account.id || 11}`} 
-              alt={account.name} 
-              className="h-full w-full object-cover" 
-            />
-          </div>
-          <div className="font-medium text-sm">{account.name}</div>
-          {location && (
-            <div className="text-xs text-gray-500 ml-2">{location}</div>
-          )}
-          <div className="ml-auto">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
-            </svg>
-          </div>
-        </div>
-        
-        {/* Post Image with carousel */}
-        <div className="aspect-square bg-black relative">
-          {media.length > 0 ? (
-            <>
-              <img 
-                src={media[selectedMediaIndex !== null ? selectedMediaIndex : 0]} 
-                alt="Post media" 
-                className="w-full h-full object-cover"
-              />
-              
-              {/* Media count indicator for Instagram */}
-              {media.length > 1 && (
-                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs rounded px-1.5 py-0.5">
-                  {selectedMediaIndex !== null ? selectedMediaIndex + 1 : 1}/{media.length}
-                </div>
-              )}
-              
-              {/* Media navigation arrows */}
-              {media.length > 1 && (
-                <>
-                  <button 
-                    onClick={goToPrevMedia}
-                    className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                  <button 
-                    onClick={goToNextMedia}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </>
-              )}
-              
-              {/* Media indicator dots */}
-              {media.length > 1 && (
-                <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
-                  {media.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={(e) => selectMediaDot(index, e)}
-                      className={`w-2 h-2 rounded-full ${selectedMediaIndex === index ? 'bg-blue-500' : 'bg-white/70'}`}
-                      aria-label={`Go to slide ${index + 1}`}
-                    />
-                  ))}
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="w-full h-full aspect-square bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
-              <FaImage className="h-10 w-10 text-gray-400 dark:text-gray-600" />
-            </div>
-          )}
-        </div>
-        
-        {/* Post Actions */}
-        <div className="p-3 text-sm">
-          <div className="flex mb-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-            </svg>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-            </svg>
-          </div>
-          
-          {/* Likes */}
-          <div className="font-medium text-sm mb-2">0 likes</div>
-          
-          {/* Caption with formatted text */}
-          {caption && (
-            <div className="text-sm mb-1">
-              <span className="font-medium mr-1">{account.name}</span>
-              {formatCaptionForPreview(caption)}
-            </div>
-          )}
-          
-          {/* Timestamp */}
-          <div className="text-gray-500 text-xs uppercase mt-2">{timestamp}</div>
-        </div>
-      </div>
-    );
-  };
-  
-  // Facebook preview
-  const renderFacebookPreview = (account) => {
-    const PlatformIcon = getPlatformIcon(account.platform);
-    
-    return (
-      <div className="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900 mx-auto">
-        {/* Post Header */}
-        <div className="flex items-center p-3">
-          <div className="h-10 w-10 rounded-full overflow-hidden mr-2">
-            <img 
-              src={`https://i.pravatar.cc/150?img=${account.id || 11}`} 
-              alt={account.name} 
-              className="h-full w-full object-cover" 
-            />
-          </div>
-          <div className="flex flex-col">
-            <div className="font-semibold text-sm">{account.name}</div>
-            <div className="text-xs text-gray-500 flex items-center">
-              {timestamp} · <FaGlobe className="ml-1" size={10} />
-            </div>
-          </div>
-          <div className="ml-auto">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
-            </svg>
-          </div>
-        </div>
-        
-        {/* Caption */}
-        {caption && (
-          <div className="px-3 pb-2 text-sm">
-            {formatCaptionForPreview(caption)}
-          </div>
-        )}
-        
-        {/* Post Image - if available with carousel */}
-        {media.length > 0 && (
-          <div className="border-t border-b border-gray-200 dark:border-gray-700 relative">
-            <div className="aspect-[4/3] bg-black">
-              <img 
-                src={media[selectedMediaIndex !== null ? selectedMediaIndex : 0]} 
-                alt="Post media" 
-                className="w-full h-full object-cover"
-              />
-              
-              {/* Media count indicator */}
-              {media.length > 1 && (
-                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs rounded px-1.5 py-0.5">
-                  {selectedMediaIndex !== null ? selectedMediaIndex + 1 : 1}/{media.length}
-                </div>
-              )}
-              
-              {/* Media navigation arrows */}
-              {media.length > 1 && (
-                <>
-                  <button 
-                    onClick={goToPrevMedia}
-                    className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                  <button 
-                    onClick={goToNextMedia}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </>
-              )}
-              
-              {/* Media indicator dots */}
-              {media.length > 1 && (
-                <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
-                  {media.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={(e) => selectMediaDot(index, e)}
-                      className={`w-2 h-2 rounded-full ${selectedMediaIndex === index ? 'bg-blue-500' : 'bg-white/70'}`}
-                      aria-label={`Go to slide ${index + 1}`}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-        
-        {/* Location - if available */} 
-        {location && (
-          <div className="px-3 py-2 text-xs text-gray-500 flex items-center">
-            <FaMapMarkerAlt className="mr-1" /> {location}
-          </div>
-        )}
-        
-        {/* Like, Comment and Share */}
-        <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex justify-between items-center text-gray-500 dark:text-gray-400 text-xs mb-2">
-            <div>0 Likes</div>
-            <div>0 Comments · 0 Shares</div>
-          </div>
-          <div className="flex justify-between items-center border-t border-gray-200 dark:border-gray-700 pt-1">
-            <button className="flex-1 flex items-center justify-center py-1 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
-              </svg>
-              Like
-            </button>
-            <button className="flex-1 flex items-center justify-center py-1 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-              Comment
-            </button>
-            <button className="flex-1 flex items-center justify-center py-1 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-              </svg>
-              Share
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-  
-  // Twitter/X preview
-  const renderTwitterPreview = (account) => {
-    const PlatformIcon = getPlatformIcon(account.platform);
-    const isX = account.platform?.toLowerCase() === 'x';
-    
-    return (
-      <div className="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900 mx-auto">
-        {/* Post Header */}
-        <div className="flex items-start p-3">
-          <div className="h-10 w-10 rounded-full overflow-hidden mr-2">
-            <img 
-              src={`https://i.pravatar.cc/150?img=${account.id || 11}`} 
-              alt={account.name} 
-              className="h-full w-full object-cover" 
-            />
-          </div>
-          <div className="flex flex-col flex-grow min-w-0">
-            <div className="flex items-center">
-              <span className="font-bold text-sm truncate">{account.name}</span>
-              <span className="text-gray-500 text-sm ml-1 truncate">@{account.name.replace(/\s+/g, '').toLowerCase()}</span>
-              <span className="text-gray-500 text-sm mx-1">·</span>
-              <span className="text-gray-500 text-sm">2m</span>
-            </div>
-            
-            {/* Caption */}
-            <div className="text-sm mt-1 break-words">
-              {formatCaptionForPreview(caption || "What's happening?")}
-            </div>
-            
-            {/* Location - if available */}
-            {location && (
-              <div className="mt-1 text-xs text-[#1d9bf0] dark:text-[#1d9bf0]">
-                <FaMapMarkerAlt className="inline mr-1" size={12} /> {location}
-              </div>
-            )}
-            
-            {/* Post Image - if available, with carousel */}
-            {media.length > 0 && (
-              <div className="mt-2 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 relative">
-                <div className="aspect-[16/9] bg-black">
-                  <img 
-                    src={media[selectedMediaIndex !== null ? selectedMediaIndex : 0]} 
-                    alt="Post media" 
-                    className="w-full h-full object-cover"
-                  />
-                  
-                  {/* Media count indicator */}
-                  {media.length > 1 && (
-                    <div className="absolute top-2 right-2 bg-black/70 text-white text-xs rounded px-1.5 py-0.5">
-                      {selectedMediaIndex !== null ? selectedMediaIndex + 1 : 1}/{media.length}
-                    </div>
-                  )}
-                  
-                  {/* Media navigation arrows */}
-                  {media.length > 1 && (
-                    <>
-                      <button 
-                        onClick={goToPrevMedia}
-                        className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                      <button 
-                        onClick={goToNextMedia}
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                    </>
-                  )}
-                  
-                  {/* Media indicator dots */}
-                  {media.length > 1 && (
-                    <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
-                      {media.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={(e) => selectMediaDot(index, e)}
-                          className={`w-2 h-2 rounded-full ${selectedMediaIndex === index ? 'bg-blue-500' : 'bg-white/70'}`}
-                          aria-label={`Go to slide ${index + 1}`}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-            
-            {/* Tweet Actions */}
-            <div className="flex justify-between mt-3 text-gray-500">
-              <div className="flex items-center hover:text-[#1d9bf0]">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-                <span className="text-xs ml-1">0</span>
-              </div>
-              <div className="flex items-center hover:text-[#1d9bf0]">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                <span className="text-xs ml-1">0</span>
-              </div>
-              <div className="flex items-center hover:text-[#f91880]">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-                <span className="text-xs ml-1">0</span>
-              </div>
-              <div className="flex items-center hover:text-[#1d9bf0]">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-  
-  // LinkedIn preview
-  const renderLinkedInPreview = (account) => {
-    const PlatformIcon = getPlatformIcon(account.platform);
-    
-    return (
-      <div className="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900 mx-auto">
-        {/* Post Header */}
-        <div className="flex items-start p-3">
-          <div className="h-12 w-12 rounded-full overflow-hidden mr-2">
-            <img 
-              src={`https://i.pravatar.cc/150?img=${account.id || 11}`} 
-              alt={account.name} 
-              className="h-full w-full object-cover" 
-            />
-          </div>
-          <div className="flex flex-col">
-            <div className="font-semibold text-sm">{account.name}</div>
-            <div className="text-xs text-gray-500">
-              {account.name}'s Professional Title
-            </div>
-            <div className="text-xs text-gray-500 flex items-center">
-              {timestamp} · <FaGlobe className="ml-1" size={10} />
-            </div>
-          </div>
-          <div className="ml-auto">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
-            </svg>
-          </div>
-        </div>
-        
-        {/* Caption */}
-        {caption && (
-          <div className="px-3 pb-3 text-sm">
-            {formatCaptionForPreview(caption)}
-          </div>
-        )}
-        
-        {/* Post Image - if available with carousel */}
-        {media.length > 0 && (
-          <div className="border-t border-b border-gray-200 dark:border-gray-700 relative">
-            <div className="aspect-video bg-black">
-              <img 
-                src={media[selectedMediaIndex !== null ? selectedMediaIndex : 0]} 
-                alt="Post media" 
-                className="w-full h-full object-cover"
-              />
-              
-              {/* Media count indicator */}
-              {media.length > 1 && (
-                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs rounded px-1.5 py-0.5">
-                  {selectedMediaIndex !== null ? selectedMediaIndex + 1 : 1}/{media.length}
-                </div>
-              )}
-              
-              {/* Media navigation arrows */}
-              {media.length > 1 && (
-                <>
-                  <button 
-                    onClick={goToPrevMedia}
-                    className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                  <button 
-                    onClick={goToNextMedia}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </>
-              )}
-              
-              {/* Media indicator dots */}
-              {media.length > 1 && (
-                <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
-                  {media.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={(e) => selectMediaDot(index, e)}
-                      className={`w-2 h-2 rounded-full ${selectedMediaIndex === index ? 'bg-blue-500' : 'bg-white/70'}`}
-                      aria-label={`Go to slide ${index + 1}`}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-        
-        {/* LinkedIn Actions */}
-        <div className="p-3">
-          <div className="flex justify-between text-gray-500 text-xs mb-2">
-            <div className="flex items-center">
-              <div className="bg-blue-500 text-white p-1 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
-                </svg>
-              </div>
-              <span className="ml-1">0</span>
-            </div>
-            <div>0 comments</div>
-          </div>
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-2 flex justify-around">
-            <button className="flex items-center text-sm text-gray-500">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
-              </svg>
-              Like
-            </button>
-            <button className="flex items-center text-sm text-gray-500">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-              Comment
-            </button>
-            <button className="flex items-center text-sm text-gray-500">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-              </svg>
-              Share
-            </button>
-            <button className="flex items-center text-sm text-gray-500">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              Send
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-  
-  // TikTok preview
-  const renderTikTokPreview = (account) => {
-    const PlatformIcon = getPlatformIcon(account.platform);
-    
-    return (
-      <div className="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-black mx-auto">
-        <div className="aspect-[4/5] max-h-[400px] relative">
-          {/* Video Preview with carousel */}
-          {media.length > 0 ? (
-            <>
-              <img 
-                src={media[selectedMediaIndex !== null ? selectedMediaIndex : 0]} 
-                alt="Post media" 
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              
-              {/* Media count indicator */}
-              {media.length > 1 && (
-                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs rounded px-1.5 py-0.5">
-                  {selectedMediaIndex !== null ? selectedMediaIndex + 1 : 1}/{media.length}
-                </div>
-              )}
-              
-              {/* Media navigation arrows */}
-              {media.length > 1 && (
-                <>
-                  <button 
-                    onClick={goToPrevMedia}
-                    className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                  <button 
-                    onClick={goToNextMedia}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </>
-              )}
-              
-              {/* Media indicator dots */}
-              {media.length > 1 && (
-                <div className="absolute bottom-14 left-0 right-0 flex justify-center gap-1">
-                  {media.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={(e) => selectMediaDot(index, e)}
-                      className={`w-2 h-2 rounded-full ${selectedMediaIndex === index ? 'bg-[#FE2C55]' : 'bg-white/70'}`}
-                      aria-label={`Go to slide ${index + 1}`}
-                    />
-                  ))}
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
-              <FaImage className="h-16 w-16 text-gray-600" />
-            </div>
-          )}
-          
-          {/* Overlay Elements */}
-          <div className="absolute inset-0 flex flex-col justify-between p-2">
-            {/* Top - Caption */}
-            <div className="text-white text-sm p-2 bg-black/30 rounded max-w-[80%] backdrop-blur-sm">
-              {caption ? formatCaptionForPreview(caption) : "TikTok Caption"}
-            </div>
-            
-            {/* Right side user controls */}
-            <div className="absolute right-2 bottom-20 flex flex-col items-center space-y-4">
-              <div className="flex flex-col items-center">
-                <div className="bg-black rounded-full p-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                </div>
-                <span className="text-white text-xs mt-1">0</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="bg-black rounded-full p-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                </div>
-                <span className="text-white text-xs mt-1">0</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="bg-black rounded-full p-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                  </svg>
-                </div>
-                <span className="text-white text-xs mt-1">0</span>
-              </div>
-            </div>
-            
-            {/* Bottom - User info */}
-            <div className="flex items-center space-x-2">
-              <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-white">
-                <img 
-                  src={`https://i.pravatar.cc/150?img=${account.id || 11}`}
-                  alt={account.name} 
-                  className="h-full w-full object-cover" 
-                />
-              </div>
-              <div className="text-white font-medium text-sm">@{account.name.replace(/\s+/g, '').toLowerCase()}</div>
-              <div className="ml-auto">
-                <button className="bg-[#FE2C55] text-white text-xs font-medium rounded-sm px-3 py-1">
-                  Follow
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-  
-  // YouTube preview
-  const renderYouTubePreview = (account) => {
-    const PlatformIcon = getPlatformIcon(account.platform);
-    
-    return (
-      <div className="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900 mx-auto">
-        {/* Video Thumbnail with carousel */}
-        <div className="relative aspect-video bg-black">
-          {media.length > 0 ? (
-            <>
-              <img 
-                src={media[selectedMediaIndex !== null ? selectedMediaIndex : 0]} 
-                alt="Video thumbnail" 
-                className="w-full h-full object-cover"
-              />
-              
-              {/* Media count indicator */}
-              {media.length > 1 && (
-                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs rounded px-1.5 py-0.5">
-                  {selectedMediaIndex !== null ? selectedMediaIndex + 1 : 1}/{media.length}
-                </div>
-              )}
-              
-              {/* Media navigation arrows */}
-              {media.length > 1 && (
-                <>
-                  <button 
-                    onClick={goToPrevMedia}
-                    className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                  <button 
-                    onClick={goToNextMedia}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </>
-              )}
-              
-              {/* Media indicator dots */}
-              {media.length > 1 && (
-                <div className="absolute bottom-12 left-0 right-0 flex justify-center gap-1">
-                  {media.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={(e) => selectMediaDot(index, e)}
-                      className={`w-2 h-2 rounded-full ${selectedMediaIndex === index ? 'bg-red-600' : 'bg-white/70'}`}
-                      aria-label={`Go to slide ${index + 1}`}
-                    />
-                  ))}
-                </div>
-              )}
-              
-              {/* Play button overlay */}
-              <div className="absolute inset-0 flex items-center justify-center group">
-                <div className="w-14 h-14 bg-black/70 rounded-full flex items-center justify-center group-hover:bg-red-600 transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-white ml-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
-              <FaYoutube className="h-14 w-14 text-red-600" />
-            </div>
-          )}
-          
-          {/* Duration indicator */}
-          <div className="absolute bottom-2 right-2 bg-black text-white text-xs px-1 py-0.5 rounded">
-            00:00
-          </div>
-        </div>
-        
-        {/* Video info */}
-        <div className="p-3">
-          <div className="flex">
-            <div className="h-9 w-9 rounded-full overflow-hidden mr-2 flex-shrink-0">
-              <img 
-                src={`https://i.pravatar.cc/150?img=${account.id || 11}`} 
-                alt={account.name} 
-                className="h-full w-full object-cover" 
-              />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-semibold line-clamp-2 mb-1">
-                {caption || "YouTube Video Title"}
-              </h3>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                {account.name}
-                <span className="mx-1">•</span>
-                <span>0 views</span>
-                <span className="mx-1">•</span>
-                <span>2 hours ago</span>
-              </div>
-            </div>
-            <div className="ml-auto flex-shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   // Group accounts by platform for better navigation
@@ -1757,4 +1035,3 @@ const getPlatformColor = (platform = '') => {
 };
 
 export default PostEditor;
- 
