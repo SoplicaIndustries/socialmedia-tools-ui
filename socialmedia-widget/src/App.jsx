@@ -200,8 +200,6 @@ function App() {
 
   return (
     <div className="w-full mx-auto">
-      <h1 className="text-3xl font-bold mb-8 text-center text-primary">Social Media Widgets</h1>
-      
       {/* Social Media Post Creation Section */}
       <section className="mb-10 p-6 bg-white dark:bg-gray-800 rounded-lg shadow">
         <h2 className="text-xl font-semibold mb-2">Social Media Post Creator</h2>
@@ -245,35 +243,6 @@ function App() {
         />
       </section>
       
-      <section className="mb-10 p-6 bg-white dark:bg-gray-800 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-2">Clickable Social Media Platform Icons (Custom onClick) - Not Editable</h2>
-        <p className="mb-4 text-gray-600 dark:text-gray-300">
-          These cards use a custom onClick handler that overrides the default behavior and are not editable.
-        </p>
-        
-        <AccountsContainer 
-          title="Available Platforms" 
-          maxRows={1}
-          expandBreakpoint="768px"
-          itemsPerRow={5}
-          showAddButton={false}
-          displayMode="row"
-          scrollable={true} // Will scroll horizontally
-        >
-          {availablePlatforms().map(platform => (
-            <AccountCard
-              key={platform}
-              id={platform}
-              size="md"
-              name={`${platform.charAt(0).toUpperCase() + platform.slice(1)} Account`}
-              tooltipText={`${platform.charAt(0).toUpperCase() + platform.slice(1)} Platform`}
-              platform={platform}
-              avatar={`https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`}
-              onClick={() => handlePlatformClick(platform)}
-            />
-          ))}
-        </AccountsContainer>
-      </section>
       
       <section className="mb-10 p-6 bg-white dark:bg-gray-800 rounded-lg shadow">
         <h2 className="text-xl font-semibold mb-2">Social Media Content Calendar</h2>
@@ -315,12 +284,6 @@ function App() {
         )}
       </section>
       
-      <div className="mt-8 p-4 bg-gray-100 rounded-lg">
-        <h3 className="text-lg font-medium mb-2 text-primary">Current Theme:</h3>
-        <pre className="p-3 bg-white rounded text-xs overflow-x-auto">
-          {JSON.stringify(themeInfo, null, 2)}
-        </pre>
-      </div>
     </div>
   )
 }
