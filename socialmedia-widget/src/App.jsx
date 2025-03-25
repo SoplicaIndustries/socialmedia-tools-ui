@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTheme } from './theme/ThemeContext'
 import { AccountCard, AccountsContainer, availablePlatforms, Calendar, PostEditor } from './components'
 import CalendarEvent from './components/Calendar/CalendarEvent'
+import { FaMapPin, FaPoll } from 'react-icons/fa';
 
 function App() {
   const theme = useTheme()
@@ -198,6 +199,51 @@ function App() {
     console.log("Draft saved:", draftData);
   };
 
+  // Example custom media input handlers
+  const handleMapMedia = (callback) => {
+    // This could open a map picker UI, a form, or any custom component
+    // For this example, we'll simulate adding a map image
+    const mapMedia = {
+      url: 'https://maps.googleapis.com/maps/api/staticmap?center=Brooklyn+Bridge,New+York,NY&zoom=13&size=600x300&maptype=roadmap&key=YOUR_API_KEY',
+      type: 'image',
+      file: {
+        name: 'Location Map.png'
+      }
+    };
+    
+    callback(mapMedia);
+  };
+  
+  const handlePollMedia = (callback) => {
+    // This could open a poll creation form
+    // For demo, just create a simple poll image
+    const pollMedia = {
+      url: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YwZjBmMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNHB4IiBmaWxsPSIjMzMzIj5Qb2xsOiBXaGljaCBmZWF0dXJlIGRvIHlvdSBsaWtlIGJlc3Q/PC90ZXh0Pjwvc3ZnPg==',
+      type: 'image',
+      file: {
+        name: 'Poll.svg'
+      }
+    };
+    
+    callback(pollMedia);
+  };
+
+  // Define custom media input options
+  const customMediaOptions = [
+    {
+      label: 'Add Map',
+      icon: <FaMapPin />,
+      tooltip: 'Add a location map to your post',
+      onClick: handleMapMedia
+    },
+    {
+      label: 'Create Poll',
+      icon: <FaPoll />,
+      tooltip: 'Create an interactive poll',
+      onClick: handlePollMedia
+    }
+  ];
+
   return (
     <div className="w-full mx-auto">
       {/* Social Media Post Creation Section */}
@@ -214,6 +260,7 @@ function App() {
             onPost={handlePost}
             onSchedule={handleSchedule}
             onSaveDraft={handleSaveDraft}
+            customMediaInputs={customMediaOptions} // Pass custom media inputs
             accountSelector={
               <AccountsContainer 
                 maxRows={1} 

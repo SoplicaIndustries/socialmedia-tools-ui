@@ -58,8 +58,19 @@ const scrollbarStyles = `
  * @param {Object} props - Component props
  * @param {Array} props.selectedAccounts - Array of selected social media accounts
  * @param {React.ReactNode} props.accountSelector - Optional account selector component
+ * @param {Function} props.onPost - Function to handle post now action
+ * @param {Function} props.onSchedule - Function to handle schedule action
+ * @param {Function} props.onSaveDraft - Function to handle save draft action
+ * @param {Array} props.customMediaInputs - Array of custom media input options
  */
-const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = () => {}, onSchedule = () => {}, onSaveDraft = () => {} }) => {
+const PostEditor = ({ 
+  selectedAccounts = [], 
+  accountSelector = null, 
+  onPost = () => {}, 
+  onSchedule = () => {}, 
+  onSaveDraft = () => {},
+  customMediaInputs = []
+}) => {
   // Insert style element for custom scrollbar
   useEffect(() => {
     const styleElement = document.createElement('style');
@@ -753,6 +764,29 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = ()
     }
   };
 
+  // Function to handle custom media input submission
+  const handleCustomMediaInput = (mediaItem) => {
+    if (!mediaItem) return;
+    
+    // If the custom input has provided a proper media item, add it to our media array
+    if (mediaItem.url && (mediaItem.type === 'image' || mediaItem.type === 'video')) {
+      // Generate thumbnails if it's a video and doesn't have a thumbnail
+      if (mediaItem.type === 'video' && !mediaItem.thumbnail) {
+        generateVideoThumbnails([mediaItem]).then(mediaWithThumbnails => {
+          setMedia(prev => [...prev, ...mediaWithThumbnails].slice(0, 5));
+          if (selectedMediaIndex === null) {
+            setSelectedMediaIndex(0);
+          }
+        });
+      } else {
+        setMedia(prev => [...prev, mediaItem].slice(0, 5));
+        if (selectedMediaIndex === null) {
+          setSelectedMediaIndex(0);
+        }
+      }
+    }
+  };
+
   return (
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col h-full">
       {/* Header section */}
@@ -917,7 +951,8 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = ()
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Media
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 items-center">
+                  {/* Built-in media input options */}
                   {media.length < 5 && (
                     <>
                       <button
@@ -947,6 +982,21 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = ()
                           className="hidden"
                         />
                       </button>
+                      
+                      {/* Custom media input pills */}
+                      {customMediaInputs.map((input, index) => (
+                        <button
+                          key={index}
+                          onClick={() => input.onClick(handleCustomMediaInput)}
+                          className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-200 text-xs flex items-center"
+                          title={input.tooltip || input.label}
+                        >
+                          {input.icon && (
+                            <span className="mr-1">{input.icon}</span>
+                          )}
+                          {input.label}
+                        </button>
+                      ))}
                     </>
                   )}
                 </div>
