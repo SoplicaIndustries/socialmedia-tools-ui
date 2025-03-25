@@ -1088,32 +1088,6 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = ()
         {/* Preview Panel - Fixed to not exceed container height */}
         {showPreview && (
           <div className="md:w-2/5 border-l border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden">
-            {/* Platform Account Tabs - With flex-shrink-0 */}
-            {activeAccounts.length > 1 && (
-              <div className="flex-shrink-0 p-2 border-b border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 overflow-x-auto">
-                <div className="flex pb-1 scrollbar-thin">
-                  {activeAccounts.map((account, index) => (
-                    <button
-                      key={index}
-                      className={`flex-shrink-0 flex items-center px-2 py-1 mr-2 rounded-full text-xs ${
-                        index === 0
-                          ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-medium'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                      }`}
-                      title={account.name}
-                    >
-                      <img 
-                        src={`https://i.pravatar.cc/150?img=${account.id || index + 11}`}
-                        alt={account.name}
-                        className="h-4 w-4 rounded-full mr-1"
-                      />
-                      <span className="truncate max-w-[80px]">{account.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            
             {/* Platform-specific Preview - Now with strict height limits and scroll indicator */}
             <div 
               ref={previewScrollContainerRef}
