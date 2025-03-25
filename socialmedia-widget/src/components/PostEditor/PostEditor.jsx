@@ -173,7 +173,49 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = ()
     setCaption(e.target.value);
   };
   
-  // Handle media upload
+  // Add function to generate video thumbnails when videos are selected
+  const generateVideoThumbnails = (mediaItems) => {
+    return mediaItems.map(media => {
+      if (media.type === 'video' && !media.thumbnail) {
+        // Create a thumbnail from the video
+        const video = document.createElement('video');
+        video.src = media.url;
+        video.crossOrigin = 'anonymous';
+        
+        return new Promise((resolve) => {
+          video.onloadeddata = () => {
+            video.currentTime = 0.5; // Set to 0.5 seconds to capture a frame
+            
+            // Wait for seek to complete
+            video.onseeked = () => {
+              const canvas = document.createElement('canvas');
+              canvas.width = video.videoWidth;
+              canvas.height = video.videoHeight;
+              
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              
+              // Get thumbnail as data URL
+              const thumbnailUrl = canvas.toDataURL('image/jpeg');
+              
+              // Return updated media object with thumbnail
+              resolve({
+                ...media,
+                thumbnail: thumbnailUrl
+              });
+            };
+          };
+          
+          // Handle errors and resolve with original media
+          video.onerror = () => resolve(media);
+        });
+      }
+      
+      return Promise.resolve(media);
+    });
+  };
+  
+  // Update the handleMediaChange function to generate thumbnails for videos
   const handleMediaChange = (e, mediaType = 'image') => {
     if (e.target.files && e.target.files[0]) {
       const filesArray = Array.from(e.target.files);
@@ -195,10 +237,13 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = ()
       });
       
       Promise.all(newMediaPromises).then(newMedia => {
-        setMedia(prev => [...prev, ...newMedia].slice(0, 5)); // Limit to 5 media items total
-        if (selectedMediaIndex === null) {
-          setSelectedMediaIndex(0); // Select first item if none selected
-        }
+        // Generate thumbnails for videos
+        Promise.all(generateVideoThumbnails(newMedia)).then(mediaWithThumbnails => {
+          setMedia(prev => [...prev, ...mediaWithThumbnails].slice(0, 5)); // Limit to 5 media items total
+          if (selectedMediaIndex === null) {
+            setSelectedMediaIndex(0); // Select first item if none selected
+          }
+        });
       });
     }
   };
@@ -206,6 +251,22 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = ()
   // Helper function to check if a media item is a video
   const isVideo = (mediaItem) => {
     return mediaItem && mediaItem.type === 'video';
+  };
+  
+  // Add function to extract filename from media item
+  const getDisplayFilename = (mediaItem) => {
+    if (!mediaItem) return '';
+    
+    // If we have the original file, use its name
+    if (mediaItem.file && mediaItem.file.name) {
+      // Limit to 15 characters to prevent overflow
+      return mediaItem.file.name.length > 15 
+        ? mediaItem.file.name.substring(0, 12) + '...' 
+        : mediaItem.file.name;
+    }
+    
+    // Otherwise use a generic name
+    return isVideo(mediaItem) ? 'video.mp4' : 'image.jpg';
   };
   
   // Trigger file input click
@@ -850,7 +911,7 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = ()
               )}
             </div>
             
-            {/* Media Attachments Section */}
+            {/* Media Attachments Section with updated thumbnail display and filename */}
             <div className="mb-6">
               <div className="flex justify-between items-center mb-2">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -891,18 +952,39 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = ()
                 </div>
               </div>
               
-              {/* Media preview area */}
+              {/* Media preview area with improved thumbnails and filenames */}
               <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 min-h-[120px] bg-gray-50 dark:bg-gray-700/50">
                 {media.length > 0 ? (
                   <div className="flex flex-wrap gap-3">
-                    {media.map((src, index) => (
+                    {media.map((mediaItem, index) => (
                       <div 
                         key={index} 
                         className={`relative w-24 h-24 border-2 rounded-lg overflow-hidden cursor-pointer transition-all
                           ${selectedMediaIndex === index ? 'border-blue-500 shadow-md scale-105' : 'border-gray-300 dark:border-gray-600'}`}
                         onClick={() => selectMedia(index)}
                       >
-                        <img src={src.url} alt={`Media ${index + 1}`} className="w-full h-full object-cover" />
+                        {/* Media thumbnail with centered content */}
+                        <div className="absolute inset-0 flex items-center justify-center bg-black">
+                          <img 
+                            src={mediaItem.thumbnail || mediaItem.url} 
+                            alt={`Media ${index + 1}`} 
+                            className="max-h-full max-w-full object-contain"
+                          />
+                        </div>
+                        
+                        {/* Overlay for visual distinction */}
+                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                          {isVideo(mediaItem) && (
+                            <FaVideo className="text-white text-lg drop-shadow-md" />
+                          )}
+                        </div>
+                        
+                        {/* Filename at bottom */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[8px] px-1 py-0.5 truncate text-center">
+                          {getDisplayFilename(mediaItem)}
+                        </div>
+                        
+                        {/* Delete button */}
                         <button
                           className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-80 hover:opacity-100"
                           onClick={(e) => {
@@ -1058,25 +1140,6 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = ()
                     <FaChevronDown className="h-5 w-5" />
                   </div>
                 </div>
-              )}
-            </div>
-            
-            {/* Platform-specific features message - Now with flex-shrink-0 and matching padding */}
-            <div className="p-4 text-xs text-center text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 flex-shrink-0">
-              {activePlatform === 'instagram' ? (
-                <p>Instagram supports images, videos, stories, and reels</p>
-              ) : activePlatform === 'facebook' ? (
-                <p>Facebook supports text posts, images, videos, and events</p>
-              ) : activePlatform === 'twitter' || activePlatform === 'x' ? (
-                <p>Twitter supports text up to 280 characters, images, and videos</p>
-              ) : activePlatform === 'linkedin' ? (
-                <p>LinkedIn supports text posts, articles, images, and documents</p>
-              ) : activePlatform === 'tiktok' ? (
-                <p>TikTok supports short-form videos and images</p>
-              ) : activePlatform === 'youtube' ? (
-                <p>YouTube supports longer-form video content</p>
-              ) : (
-                <p>Select an account to see platform-specific features</p>
               )}
             </div>
           </div>
