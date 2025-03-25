@@ -4,6 +4,26 @@ import { FaGlobe } from 'react-icons/fa';
 const LinkedInPreview = ({ account, caption, media, location, selectedMediaIndex, timestamp, formatCaptionForPreview, isVideo, goToPrevMedia, goToNextMedia, selectMediaDot }) => {
   const currentMedia = media[selectedMediaIndex !== null ? selectedMediaIndex : 0];
   
+  // LinkedIn prefers 1.91:1 ratio (1200×627px) for link shares and sponsored content
+  // but also supports various aspect ratios
+  const getMediaContainerStyle = () => {
+    if (!currentMedia) return null;
+    
+    if (isVideo(currentMedia)) {
+      // Use 16:9 for LinkedIn videos
+      return { aspectRatio: '16/9', backgroundColor: '#000' };
+    }
+    
+    // For images, maintain aspect ratio with maximum height
+    return { 
+      maxHeight: '400px',
+      backgroundColor: '#000',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    };
+  };
+  
   return (
     <div className="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900 mx-auto">
       {/* Post Header */}
@@ -40,28 +60,27 @@ const LinkedInPreview = ({ account, caption, media, location, selectedMediaIndex
       
       {/* Post Image/Video - if available with carousel */}
       {media.length > 0 && (
-        <div className="border-t border-b border-gray-200 dark:border-gray-700 relative">
-          <div className="aspect-video bg-black">
-            {currentMedia && isVideo(currentMedia) ? (
-              <video 
-                src={currentMedia.url} 
-                className="w-full h-full object-cover"
-                autoPlay
-                loop
-                muted
-                playsInline
-                controls
-              />
-            ) : (
-              <img 
-                src={currentMedia ? currentMedia.url : ''} 
-                alt="Post media" 
-                className="w-full h-full object-cover"
-              />
-            )}
-            
-            {/* Media count indicator */}
-            {media.length > 1 && (
+        <div className="border-t border-b border-gray-200 dark:border-gray-700 relative" style={getMediaContainerStyle()}>
+          {currentMedia && isVideo(currentMedia) ? (
+            <video 
+              src={currentMedia.url} 
+              className="w-full h-full object-contain"
+              autoPlay
+              loop
+              muted
+              playsInline
+              controls
+            />
+          ) : (
+            <img 
+              src={currentMedia ? currentMedia.url : ''} 
+              alt="Post media" 
+              className="max-w-full max-h-full w-auto h-auto object-contain"
+            />
+          )}
+          
+          {/* Media count indicator */}
+          {media.length > 1 && (
               <div className="absolute top-2 right-2 bg-black/70 text-white text-xs rounded px-1.5 py-0.5">
                 {selectedMediaIndex !== null ? selectedMediaIndex + 1 : 1}/{media.length}
               </div>
@@ -102,7 +121,6 @@ const LinkedInPreview = ({ account, caption, media, location, selectedMediaIndex
                 ))}
               </div>
             )}
-          </div>
         </div>
       )}
       

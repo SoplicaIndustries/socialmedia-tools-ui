@@ -4,6 +4,35 @@ import { FaGlobe, FaMapMarkerAlt } from 'react-icons/fa';
 const FacebookPreview = ({ account, caption, media, location, selectedMediaIndex, timestamp, formatCaptionForPreview, isVideo, goToPrevMedia, goToNextMedia, selectMediaDot }) => {
   const currentMedia = media[selectedMediaIndex !== null ? selectedMediaIndex : 0];
   
+  // Facebook is flexible with aspect ratios but typically maintains the natural
+  // aspect ratio of the media while fitting it within display constraints
+  const getMediaContainerStyle = () => {
+    if (!currentMedia) return null;
+    
+    // Updated container style to ensure full visibility without height cutting off
+    return { 
+      backgroundColor: '#000',
+      position: 'relative',
+      padding: '56.25% 0 0 0', // 16:9 aspect ratio container as fallback
+      overflow: 'hidden'
+    };
+  };
+  
+  // Media style to ensure content is properly displayed
+  const getMediaStyle = () => {
+    return {
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      maxWidth: '100%',
+      maxHeight: '100%',
+      width: 'auto',
+      height: 'auto',
+      objectFit: 'contain'
+    };
+  };
+  
   return (
     <div className="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900 mx-auto">
       {/* Post Header */}
@@ -37,39 +66,38 @@ const FacebookPreview = ({ account, caption, media, location, selectedMediaIndex
       
       {/* Post Image/Video - if available with carousel */}
       {media.length > 0 && (
-        <div className="border-t border-b border-gray-200 dark:border-gray-700 relative">
-          <div className="aspect-[4/3] bg-black">
-            {currentMedia && isVideo(currentMedia) ? (
-              <video 
-                src={currentMedia.url} 
-                className="w-full h-full object-cover"
-                autoPlay
-                loop
-                muted
-                playsInline
-                controls
-              />
-            ) : (
-              <img 
-                src={currentMedia ? currentMedia.url : ''} 
-                alt="Post media" 
-                className="w-full h-full object-cover"
-              />
-            )}
-            
-            {/* Media count indicator */}
-            {media.length > 1 && (
-              <div className="absolute top-2 right-2 bg-black/70 text-white text-xs rounded px-1.5 py-0.5">
-                {selectedMediaIndex !== null ? selectedMediaIndex + 1 : 1}/{media.length}
-              </div>
-            )}
-            
-            {/* Media navigation arrows */}
-            {media.length > 1 && (
+        <div className="border-t border-b border-gray-200 dark:border-gray-700" style={getMediaContainerStyle()}>
+          {currentMedia && isVideo(currentMedia) ? (
+            <video 
+              src={currentMedia.url} 
+              style={getMediaStyle()}
+              autoPlay
+              loop
+              muted
+              playsInline
+              controls
+            />
+          ) : (
+            <img 
+              src={currentMedia ? currentMedia.url : ''} 
+              alt="Post media" 
+              style={getMediaStyle()}
+            />
+          )}
+          
+          {/* Media count indicator */}
+          {media.length > 1 && (
+            <div className="absolute top-2 right-2 bg-black/70 text-white text-xs rounded px-1.5 py-0.5 z-10">
+              {selectedMediaIndex !== null ? selectedMediaIndex + 1 : 1}/{media.length}
+            </div>
+          )}
+          
+          {/* Media navigation arrows */}
+          {media.length > 1 && (
               <>
                 <button 
                   onClick={goToPrevMedia}
-                  className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80 z-10"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -77,7 +105,7 @@ const FacebookPreview = ({ account, caption, media, location, selectedMediaIndex
                 </button>
                 <button 
                   onClick={goToNextMedia}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80 z-10"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
@@ -88,7 +116,7 @@ const FacebookPreview = ({ account, caption, media, location, selectedMediaIndex
             
             {/* Media indicator dots */}
             {media.length > 1 && (
-              <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+              <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 z-10">
                 {media.map((_, index) => (
                   <button
                     key={index}
@@ -99,7 +127,6 @@ const FacebookPreview = ({ account, caption, media, location, selectedMediaIndex
                 ))}
               </div>
             )}
-          </div>
         </div>
       )}
       
@@ -125,7 +152,7 @@ const FacebookPreview = ({ account, caption, media, location, selectedMediaIndex
           </button>
           <button className="flex-1 flex items-center justify-center py-1 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03 8 9 8s9-3.582 9-8z" />
             </svg>
             Comment
           </button>

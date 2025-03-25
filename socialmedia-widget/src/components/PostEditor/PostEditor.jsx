@@ -645,357 +645,364 @@ const PostEditor = ({ selectedAccounts = [], accountSelector = null, onPost = ()
   };
 
   return (
-    <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col">
+      {/* Header with title */}
       <div className="p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-        {/* Header with integrated account selector */}
-        <div className="flex flex-col">
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Post Editor</h2>
-            {selectedAccounts.length > 0 && (
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600 dark:text-gray-300">Posting to:</span>
-                <div className="flex -space-x-2">
-                  {selectedAccounts.slice(0, 3).map((account, index) => (
-                    <div key={index} className="h-8 w-8 rounded-full border-2 border-white dark:border-gray-800 overflow-hidden" title={`${account.name} (${account.platform})`}>
-                      <img 
-                        src={`https://i.pravatar.cc/150?img=${account.id || index + 11}`} 
-                        alt={account.name} 
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                  ))}
-                  {selectedAccounts.length > 3 && (
-                    <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-medium border-2 border-white dark:border-gray-800">
-                      +{selectedAccounts.length - 3}
-                    </div>
-                  )}
-                </div>
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Post Editor</h2>
+          {selectedAccounts.length > 0 && (
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600 dark:text-gray-300">Posting to:</span>
+              <div className="flex -space-x-2">
+                {selectedAccounts.slice(0, 3).map((account, index) => (
+                  <div key={index} className="h-8 w-8 rounded-full border-2 border-white dark:border-gray-800 overflow-hidden" title={`${account.name} (${account.platform})`}>
+                    <img 
+                      src={`https://i.pravatar.cc/150?img=${account.id || index + 11}`} 
+                      alt={account.name} 
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ))}
+                {selectedAccounts.length > 3 && (
+                  <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-medium border-2 border-white dark:border-gray-800">
+                    +{selectedAccounts.length - 3}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          
-          {/* Render the account selector if provided */}
-          {accountSelector && (
-            <div className="mb-3">
-              {accountSelector}
             </div>
           )}
         </div>
       </div>
       
-      <div className={`flex flex-col md:flex-row divide-gray-200 dark:divide-gray-700`}>
+      <div className="flex flex-col md:flex-row h-full">
         {/* Editor Panel */}
-        <div className={`p-4 ${showPreview ? 'md:w-3/5' : 'w-full'}`}>
-          {/* Content Composition Area - NOW FIRST */}
-          <div className="mb-6">
-            <div className="border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 bg-white dark:bg-gray-800">
-              <textarea
-                ref={captionInputRef}
-                className="w-full px-3 py-4 text-gray-700 dark:text-gray-300 border-none rounded-t-lg focus:outline-none bg-white dark:bg-gray-800 resize-none min-h-[180px]"
-                placeholder="Write your post... Use #hashtags and {{placeholders}} for dynamic content"
-                value={caption}
-                onChange={handleCaptionChange}
-              />
-              
-              {/* Icon Toolbar */}
-              <div className="flex items-center border-t border-gray-200 dark:border-gray-600 px-2 py-2 bg-gray-50 dark:bg-gray-700 rounded-b-lg">
-                <button 
-                  onClick={toggleEmojiPicker}
-                  className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-700 dark:text-gray-300"
-                >
-                  <FaSmile />
-                </button>
-                
-                <button 
-                  onClick={toggleHashtagPicker}
-                  className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-700 dark:text-gray-300"
-                >
-                  <FaHashtag />
-                </button>
-                
-                <button 
-                  onClick={() => addPlaceholder('website')}
-                  className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-700 dark:text-gray-300"
-                >
-                  <FaFont />
-                </button>
-                
-                <div className="flex-grow"></div>
-                
-                <div className="px-2 text-sm text-gray-500 dark:text-gray-400">
-                  {charCount} characters
-                </div>
-              </div>
+        <div className={`flex flex-col ${showPreview ? 'md:w-3/5' : 'w-full'}`}>
+          {/* Account Selector - Moved inside editor column */}
+          {accountSelector && (
+            <div className="p-4 border-b border-gray-200 dark:border-gray-600">
+              {accountSelector}
             </div>
-            
-            {/* Emoji Picker */}
-            {showEmojiPicker && (
-              <div className="mt-2 absolute z-10">
-                <EmojiPicker onEmojiSelect={addEmoji} onClose={() => setShowEmojiPicker(false)} />
-              </div>
-            )}
-            
-            {/* Hashtag Picker */}
-            {showHashtagPicker && (
-              <div className="mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 absolute z-10">
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Popular Hashtags</h3>
-                  <button 
-                    onClick={() => setShowHashtagPicker(false)} 
-                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                  >
-                    ✕
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {popularHashtags.map((hashtag, index) => (
-                    <button
-                      key={index}
-                      onClick={() => addHashtag(hashtag)}
-                      className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-800 text-sm transition-colors"
-                    >
-                      {hashtag}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          )}
           
-          {/* Media Attachments Section - NOW BELOW TEXT INPUT */}
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Media
-              </label>
-              <div className="flex gap-2">
-                {media.length < 5 && (
-                  <>
-                    <button
-                      onClick={() => fileInputRef.current.click()}
-                      className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-200 text-xs flex items-center"
-                    >
-                      <FaImage className="mr-1" /> Add Image
-                      <input 
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleMediaChange}
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                      />
-                    </button>
-                    <button
-                      onClick={() => videoInputRef.current.click()}
-                      className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-200 text-xs flex items-center"
-                    >
-                      <FaVideo className="mr-1" /> Add Video
-                      <input 
-                        type="file"
-                        ref={videoInputRef}
-                        onChange={(e) => handleMediaChange(e, 'video')}
-                        accept="video/*"
-                        className="hidden"
-                      />
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-            
-            {/* Media preview area */}
-            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 min-h-[120px] bg-gray-50 dark:bg-gray-700/50">
-              {media.length > 0 ? (
-                <div className="flex flex-wrap gap-3">
-                  {media.map((src, index) => (
-                    <div 
-                      key={index} 
-                      className={`relative w-24 h-24 border-2 rounded-lg overflow-hidden cursor-pointer transition-all
-                        ${selectedMediaIndex === index ? 'border-blue-500 shadow-md scale-105' : 'border-gray-300 dark:border-gray-600'}`}
-                      onClick={() => selectMedia(index)}
-                    >
-                      <img src={src} alt={`Media ${index + 1}`} className="w-full h-full object-cover" />
-                      <button
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-80 hover:opacity-100"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeMedia(index);
-                        }}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
+          {/* Editor Content */}
+          <div className="p-4 flex-grow overflow-y-auto">
+            {/* Content Composition Area */}
+            <div className="mb-6">
+              <div className="border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 bg-white dark:bg-gray-800">
+                <textarea
+                  ref={captionInputRef}
+                  className="w-full px-3 py-4 text-gray-700 dark:text-gray-300 border-none rounded-t-lg focus:outline-none bg-white dark:bg-gray-800 resize-none min-h-[180px]"
+                  placeholder="Write your post... Use #hashtags and {{placeholders}} for dynamic content"
+                  value={caption}
+                  onChange={handleCaptionChange}
+                />
+                
+                {/* Icon Toolbar */}
+                <div className="flex items-center border-t border-gray-200 dark:border-gray-600 px-2 py-2 bg-gray-50 dark:bg-gray-700 rounded-b-lg">
+                  <button 
+                    onClick={toggleEmojiPicker}
+                    className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-700 dark:text-gray-300"
+                  >
+                    <FaSmile />
+                  </button>
+                  
+                  <button 
+                    onClick={toggleHashtagPicker}
+                    className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-700 dark:text-gray-300"
+                  >
+                    <FaHashtag />
+                  </button>
+                  
+                  <button 
+                    onClick={() => addPlaceholder('website')}
+                    className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-700 dark:text-gray-300"
+                  >
+                    <FaFont />
+                  </button>
+                  
+                  <div className="flex-grow"></div>
+                  
+                  <div className="px-2 text-sm text-gray-500 dark:text-gray-400">
+                    {charCount} characters
+                  </div>
                 </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-32 text-gray-400">
-                  <FaImage className="text-4xl mb-2" />
-                  <p className="text-sm">Add images or videos to your post</p>
+              </div>
+              
+              {/* Emoji Picker */}
+              {showEmojiPicker && (
+                <div className="mt-2 absolute z-10">
+                  <EmojiPicker onEmojiSelect={addEmoji} onClose={() => setShowEmojiPicker(false)} />
                 </div>
               )}
-            </div>
-          </div>
-          
-          {/* Post Controls - Redesigned with inline location */}
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Narrower Location Input - Now inline with buttons */}
-            <div className="relative md:w-1/3 max-w-xs flex-shrink-0" ref={locationInputRef}>
-              <div className="flex items-center bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 h-10">
-                <FaMapMarkerAlt className="text-gray-500 mr-2 flex-shrink-0" />
-                <input
-                  type="text"
-                  className="bg-transparent border-none focus:outline-none text-gray-700 dark:text-gray-300 w-full text-sm"
-                  placeholder="Add location"
-                  value={location}
-                  onChange={handleLocationSearch}
-                  onClick={() => setShowLocationPicker(true)}
-                />
-                {location && (
-                  <button 
-                    className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400"
-                    onClick={clearLocation}
-                  >
-                    <FaTimes />
-                  </button>
-                )}
-              </div>
               
-              {/* Location Results Dropdown */}
-              {showLocationPicker && (
-                <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 z-10">
-                  <div className="max-h-48 overflow-y-auto p-1">
-                    {locationResults.map((loc, index) => (
-                      <div
+              {/* Hashtag Picker */}
+              {showHashtagPicker && (
+                <div className="mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 absolute z-10">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Popular Hashtags</h3>
+                    <button 
+                      onClick={() => setShowHashtagPicker(false)} 
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {popularHashtags.map((hashtag, index) => (
+                      <button
                         key={index}
-                        className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer flex items-center text-sm"
-                        onClick={() => selectLocation(loc)}
+                        onClick={() => addHashtag(hashtag)}
+                        className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-800 text-sm transition-colors"
                       >
-                        <FaMapMarkerAlt className="text-gray-500 mr-2 flex-shrink-0" />
-                        <span>{loc}</span>
-                      </div>
+                        {hashtag}
+                      </button>
                     ))}
                   </div>
                 </div>
               )}
             </div>
             
-            <div className="flex-grow"></div>
-            
-            {/* Save Draft Button */}
-            <button 
-              onClick={handleSaveDraft}
-              className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors flex items-center font-medium"
-            >
-              <FaSave className="mr-2" />
-              Save Draft
-            </button>
-            
-            {/* Schedule Button */}
-            <button 
-              onClick={handleSchedule}
-              disabled={selectedAccounts.length === 0}
-              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors flex items-center font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <FaCalendarAlt className="mr-2" />
-              Schedule
-            </button>
-            
-            {/* Post Now Button */}
-            <button 
-              onClick={handlePostNow}
-              disabled={selectedAccounts.length === 0}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <FaPaperPlane className="mr-2" />
-              Post Now
-            </button>
+            {/* Media Attachments Section */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Media
+                </label>
+                <div className="flex gap-2">
+                  {media.length < 5 && (
+                    <>
+                      <button
+                        onClick={() => fileInputRef.current.click()}
+                        className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-200 text-xs flex items-center"
+                      >
+                        <FaImage className="mr-1" /> Add Image
+                        <input 
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleMediaChange}
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                        />
+                      </button>
+                      <button
+                        onClick={() => videoInputRef.current.click()}
+                        className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-200 text-xs flex items-center"
+                      >
+                        <FaVideo className="mr-1" /> Add Video
+                        <input 
+                          type="file"
+                          ref={videoInputRef}
+                          onChange={(e) => handleMediaChange(e, 'video')}
+                          accept="video/*"
+                          className="hidden"
+                        />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+              
+              {/* Media preview area */}
+              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 min-h-[120px] bg-gray-50 dark:bg-gray-700/50">
+                {media.length > 0 ? (
+                  <div className="flex flex-wrap gap-3">
+                    {media.map((src, index) => (
+                      <div 
+                        key={index} 
+                        className={`relative w-24 h-24 border-2 rounded-lg overflow-hidden cursor-pointer transition-all
+                          ${selectedMediaIndex === index ? 'border-blue-500 shadow-md scale-105' : 'border-gray-300 dark:border-gray-600'}`}
+                        onClick={() => selectMedia(index)}
+                      >
+                        <img src={src.url} alt={`Media ${index + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-80 hover:opacity-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeMedia(index);
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-32 text-gray-400">
+                    <FaImage className="text-4xl mb-2" />
+                    <p className="text-sm">Add images or videos to your post</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {/* Post Controls - Bottom of the editor section */}
+          <div className="p-4 border-t border-gray-200 dark:border-gray-600">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Narrower Location Input - Now inline with buttons */}
+              <div className="relative md:w-1/3 max-w-xs flex-shrink-0" ref={locationInputRef}>
+                <div className="flex items-center bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 h-10">
+                  <FaMapMarkerAlt className="text-gray-500 mr-2 flex-shrink-0" />
+                  <input
+                    type="text"
+                    className="bg-transparent border-none focus:outline-none text-gray-700 dark:text-gray-300 w-full text-sm"
+                    placeholder="Add location"
+                    value={location}
+                    onChange={handleLocationSearch}
+                    onClick={() => setShowLocationPicker(true)}
+                  />
+                  {location && (
+                    <button 
+                      className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400"
+                      onClick={clearLocation}
+                    >
+                      <FaTimes />
+                    </button>
+                  )}
+                </div>
+                
+                {/* Location Results Dropdown */}
+                {showLocationPicker && (
+                  <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 z-10">
+                    <div className="max-h-48 overflow-y-auto p-1">
+                      {locationResults.map((loc, index) => (
+                        <div
+                          key={index}
+                          className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer flex items-center text-sm"
+                          onClick={() => selectLocation(loc)}
+                        >
+                          <FaMapMarkerAlt className="text-gray-500 mr-2 flex-shrink-0" />
+                          <span>{loc}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex-grow"></div>
+              
+              {/* Save Draft Button */}
+              <button 
+                onClick={handleSaveDraft}
+                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors flex items-center font-medium"
+              >
+                <FaSave className="mr-2" />
+                Save Draft
+              </button>
+              
+              {/* Schedule Button */}
+              <button 
+                onClick={handleSchedule}
+                disabled={selectedAccounts.length === 0}
+                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors flex items-center font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FaCalendarAlt className="mr-2" />
+                Schedule
+              </button>
+              
+              {/* Post Now Button */}
+              <button 
+                onClick={handlePostNow}
+                disabled={selectedAccounts.length === 0}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FaPaperPlane className="mr-2" />
+                Post Now
+              </button>
+            </div>
           </div>
         </div>
         
-        {/* Preview Panel */}
+        {/* Preview Panel - Now full height */}
         {showPreview && (
-          <div className="p-4 md:w-2/5 border-l border-gray-200 dark:border-gray-700 flex flex-col h-full">
+          <div className="md:w-2/5 border-l border-gray-200 dark:border-gray-700 flex flex-col h-full overflow-hidden">
             {/* Platform Navigation - Only show when multiple platforms are available */}
-            {availablePlatforms.length > 1 && (
-              <div className="flex justify-between items-center mb-3 flex-shrink-0">
-                <button 
-                  onClick={goToPreviousPlatform}
-                  className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-                >
-                  <FaChevronLeft className="text-gray-600 dark:text-gray-300" />
-                </button>
-                
-                <div className="flex items-center">
-                  {activePlatform && (
-                    <div className="h-6 w-6 mr-1">
-                      {React.createElement(getPlatformIcon(activePlatform), {
-                        className: "h-full w-full",
-                        style: { color: getPlatformColor(activePlatform) }
-                      })}
-                    </div>
-                  )}
-                  <span className="text-sm font-medium capitalize">{activePlatform || 'Preview'} ({availablePlatforms.indexOf(activePlatform) + 1}/{availablePlatforms.length})</span>
-                </div>
-                
-                <button 
-                  onClick={goToNextPlatform}
-                  className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-                >
-                  <FaChevronRight className="text-gray-600 dark:text-gray-300" />
-                </button>
-              </div>
-            )}
-            
-            {/* Platform Account Tabs - Show when multiple accounts for the same platform */}
-            {activeAccounts.length > 1 && (
-              <div className="flex overflow-x-auto mb-3 pb-1 scrollbar-thin flex-shrink-0">
-                {activeAccounts.map((account, index) => (
-                  <button
-                    key={index}
-                    className={`flex-shrink-0 flex items-center px-2 py-1 mr-2 rounded-full text-xs ${
-                      index === 0  // Using first account as active for simplicity
-                        ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-medium'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                    }`}
-                    title={account.name}
+            <div className="flex-shrink-0 p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+              {availablePlatforms.length > 1 && (
+                <div className="flex justify-between items-center mb-3 flex-shrink-0">
+                  <button 
+                    onClick={goToPreviousPlatform}
+                    className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
                   >
-                    <img 
-                      src={`https://i.pravatar.cc/150?img=${account.id || index + 11}`}
-                      alt={account.name}
-                      className="h-4 w-4 rounded-full mr-1"
-                    />
-                    <span className="truncate max-w-[80px]">{account.name}</span>
+                    <FaChevronLeft className="text-gray-600 dark:text-gray-300" />
                   </button>
-                ))}
-              </div>
-            )}
-            
-            {/* Platform-specific Preview - Now with proper scrolling */}
-            <div className="flex-grow overflow-y-auto max-h-[500px] space-y-4 pr-2 custom-scrollbar">
-              {activeAccounts.map((account, index) => (
-                <div key={index} className="relative">
-                  {index > 0 && (
-                    <div className="absolute -top-2 left-0 right-0 h-px bg-gray-200 dark:bg-gray-700"></div>
-                  )}
                   
-                  <div className="mb-1 pb-1 flex items-center justify-between sticky top-0 bg-white dark:bg-gray-800 z-10 pt-2">
-                    <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                  <div className="flex items-center">
+                    {activePlatform && (
+                      <div className="h-6 w-6 mr-1">
+                        {React.createElement(getPlatformIcon(activePlatform), {
+                          className: "h-full w-full",
+                          style: { color: getPlatformColor(activePlatform) }
+                        })}
+                      </div>
+                    )}
+                    <span className="text-sm font-medium capitalize">{activePlatform || 'Preview'} ({availablePlatforms.indexOf(activePlatform) + 1}/{availablePlatforms.length})</span>
+                  </div>
+                  
+                  <button 
+                    onClick={goToNextPlatform}
+                    className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                  >
+                    <FaChevronRight className="text-gray-600 dark:text-gray-300" />
+                  </button>
+                </div>
+              )}
+              
+              {/* Platform Account Tabs - Show when multiple accounts for the same platform */}
+              {activeAccounts.length > 1 && (
+                <div className="flex overflow-x-auto pb-1 scrollbar-thin flex-shrink-0">
+                  {activeAccounts.map((account, index) => (
+                    <button
+                      key={index}
+                      className={`flex-shrink-0 flex items-center px-2 py-1 mr-2 rounded-full text-xs ${
+                        index === 0  // Using first account as active for simplicity
+                          ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-medium'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      }`}
+                      title={account.name}
+                    >
                       <img 
                         src={`https://i.pravatar.cc/150?img=${account.id || index + 11}`}
                         alt={account.name}
                         className="h-4 w-4 rounded-full mr-1"
                       />
-                      {account.name}
-                    </span>
-                  </div>
-                  
-                  {renderPlatformPreview(account)}
+                      <span className="truncate max-w-[80px]">{account.name}</span>
+                    </button>
+                  ))}
                 </div>
-              ))}
+              )}
+            </div>
+            
+            {/* Platform-specific Preview - Now with proper scrolling */}
+            <div className="flex-grow overflow-y-auto custom-scrollbar">
+              <div className="p-4 space-y-4">
+                {activeAccounts.map((account, index) => (
+                  <div key={index} className="relative">
+                    {index > 0 && (
+                      <div className="absolute -top-2 left-0 right-0 h-px bg-gray-200 dark:bg-gray-700"></div>
+                    )}
+                    
+                    <div className="mb-1 pb-1 flex items-center justify-between sticky top-0 bg-white dark:bg-gray-800 z-10 pt-2">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                        <img 
+                          src={`https://i.pravatar.cc/150?img=${account.id || index + 11}`}
+                          alt={account.name}
+                          className="h-4 w-4 rounded-full mr-1"
+                        />
+                        {account.name}
+                      </span>
+                    </div>
+                    
+                    {renderPlatformPreview(account)}
+                  </div>
+                ))}
+              </div>
             </div>
             
             {/* Platform-specific features message */}
-            <div className="mt-3 text-xs text-center text-gray-500 dark:text-gray-400 flex-shrink-0">
+            <div className="p-4 text-xs text-center text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
               {activePlatform === 'instagram' ? (
                 <p>Instagram supports images, videos, stories, and reels</p>
               ) : activePlatform === 'facebook' ? (

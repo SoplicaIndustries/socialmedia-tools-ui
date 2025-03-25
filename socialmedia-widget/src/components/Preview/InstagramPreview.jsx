@@ -4,6 +4,22 @@ import { FaImage } from 'react-icons/fa';
 const InstagramPreview = ({ account, caption, media, location, selectedMediaIndex, timestamp, formatCaptionForPreview, isVideo, goToPrevMedia, goToNextMedia, selectMediaDot }) => {
   const currentMedia = media[selectedMediaIndex !== null ? selectedMediaIndex : 0];
   
+  // Instagram prioritizes keeping the entire image visible
+  // Most posts are square, but Instagram now supports different aspect ratios
+  const getMediaContainerStyle = () => {
+    if (!currentMedia) return null;
+    
+    // Default to square container for Instagram
+    // But we'll add proper padding to maintain aspect ratio
+    return { 
+      aspectRatio: '1/1',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#000'
+    };
+  };
+  
   return (
     <div className="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900 mx-auto">
       {/* Post Header */}
@@ -26,14 +42,14 @@ const InstagramPreview = ({ account, caption, media, location, selectedMediaInde
         </div>
       </div>
       
-      {/* Post Image/Video with carousel */}
-      <div className="aspect-square bg-black relative">
+      {/* Post Image/Video with carousel - Now with proper aspect ratio */}
+      <div className="bg-black relative" style={getMediaContainerStyle()}>
         {media.length > 0 ? (
           <>
             {currentMedia && isVideo(currentMedia) ? (
               <video 
                 src={currentMedia.url} 
-                className="w-full h-full object-cover"
+                className="max-w-full max-h-full w-auto h-auto object-contain"
                 autoPlay
                 loop
                 muted
@@ -44,7 +60,7 @@ const InstagramPreview = ({ account, caption, media, location, selectedMediaInde
               <img 
                 src={currentMedia ? currentMedia.url : ''} 
                 alt="Post media" 
-                className="w-full h-full object-cover"
+                className="max-w-full max-h-full w-auto h-auto object-contain"
               />
             )}
             
@@ -92,7 +108,7 @@ const InstagramPreview = ({ account, caption, media, location, selectedMediaInde
             )}
           </>
         ) : (
-          <div className="w-full h-full aspect-square bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
+          <div className="w-full h-full flex items-center justify-center">
             <FaImage className="h-10 w-10 text-gray-400 dark:text-gray-600" />
           </div>
         )}

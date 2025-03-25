@@ -3,8 +3,27 @@ import { FaMapMarkerAlt } from 'react-icons/fa';
 
 const TwitterPreview = ({ account, caption, media, location, selectedMediaIndex, formatCaptionForPreview, isVideo, goToPrevMedia, goToNextMedia, selectMediaDot }) => {
   const currentMedia = media[selectedMediaIndex !== null ? selectedMediaIndex : 0];
-  const isX = account.platform?.toLowerCase() === 'x';
-  
+
+  // Twitter typically uses 16:9 for videos and maintains aspect ratio for images
+  // with a maximum height constraint
+  const getMediaContainerStyle = () => {
+    if (!currentMedia) return null;
+
+    if (isVideo(currentMedia)) {
+      // Use 16:9 aspect ratio for videos on Twitter
+      return { aspectRatio: '16/9', backgroundColor: '#000' };
+    }
+
+    // For images, maintain aspect ratio with max height
+    return {
+      maxHeight: '400px',
+      backgroundColor: '#000',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    };
+  };
+
   return (
     <div className="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900 mx-auto">
       {/* Post Header */}
@@ -38,69 +57,67 @@ const TwitterPreview = ({ account, caption, media, location, selectedMediaIndex,
           
           {/* Post Image/Video - if available, with carousel */}
           {media.length > 0 && (
-            <div className="mt-2 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 relative">
-              <div className="aspect-[16/9] bg-black">
-                {currentMedia && isVideo(currentMedia) ? (
-                  <video 
-                    src={currentMedia.url} 
-                    className="w-full h-full object-cover"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    controls
-                  />
-                ) : (
-                  <img 
-                    src={currentMedia ? currentMedia.url : ''} 
-                    alt="Post media" 
-                    className="w-full h-full object-cover"
-                  />
-                )}
-                
-                {/* Media count indicator */}
-                {media.length > 1 && (
-                  <div className="absolute top-2 right-2 bg-black/70 text-white text-xs rounded px-1.5 py-0.5">
-                    {selectedMediaIndex !== null ? selectedMediaIndex + 1 : 1}/{media.length}
-                  </div>
-                )}
-                
-                {/* Media navigation arrows */}
-                {media.length > 1 && (
-                  <>
-                    <button 
-                      onClick={goToPrevMedia}
-                      className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                    <button 
-                      onClick={goToNextMedia}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </>
-                )}
-                
-                {/* Media indicator dots */}
-                {media.length > 1 && (
-                  <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
-                    {media.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={(e) => selectMediaDot(index, e)}
-                        className={`w-2 h-2 rounded-full ${selectedMediaIndex === index ? 'bg-blue-500' : 'bg-white/70'}`}
-                        aria-label={`Go to slide ${index + 1}`}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
+            <div className="mt-2 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 relative" style={getMediaContainerStyle()}>
+              {currentMedia && isVideo(currentMedia) ? (
+                <video 
+                  src={currentMedia.url} 
+                  className="w-full h-full object-contain"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  controls
+                />
+              ) : (
+                <img 
+                  src={currentMedia ? currentMedia.url : ''} 
+                  alt="Post media" 
+                  className="max-w-full max-h-full w-auto h-auto object-contain"
+                />
+              )}
+              
+              {/* Media count indicator */}
+              {media.length > 1 && (
+                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs rounded px-1.5 py-0.5">
+                  {selectedMediaIndex !== null ? selectedMediaIndex + 1 : 1}/{media.length}
+                </div>
+              )}
+              
+              {/* Media navigation arrows */}
+              {media.length > 1 && (
+                <>
+                  <button 
+                    onClick={goToPrevMedia}
+                    className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  <button 
+                    onClick={goToNextMedia}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </>
+              )}
+              
+              {/* Media indicator dots */}
+              {media.length > 1 && (
+                <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+                  {media.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={(e) => selectMediaDot(index, e)}
+                      className={`w-2 h-2 rounded-full ${selectedMediaIndex === index ? 'bg-blue-500' : 'bg-white/70'}`}
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
           

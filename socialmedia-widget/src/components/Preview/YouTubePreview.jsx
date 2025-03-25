@@ -4,16 +4,54 @@ import { FaImage } from 'react-icons/fa';
 const YouTubePreview = ({ account, caption, media, selectedMediaIndex, isVideo, goToPrevMedia, goToNextMedia, selectMediaDot }) => {
   const currentMedia = media[selectedMediaIndex !== null ? selectedMediaIndex : 0];
   
+  // Determine if the media is portrait/vertical orientation
+  const isVerticalMedia = () => {
+    if (!currentMedia || !currentMedia.url) return false;
+    
+    // YouTube now supports vertical videos (shorts) but typically still presents them in
+    // a standard container. We'll handle both horizontal and vertical content.
+    
+    // For vertical content, we'll use a black background and contain approach
+    // For horizontal content, we'll maintain 16:9 with cover
+    return false; // This would ideally check media dimensions from a property
+  };
+  
+  // Get container style for YouTube videos and thumbnails
+  const getMediaContainerStyle = () => {
+    // Maintain YouTube's preferred aspect ratio
+    return {
+      aspectRatio: '16/9', // Standard YouTube ratio
+      backgroundColor: '#000',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    };
+  };
+  
+  // Determine optimal media display properties
+  const getMediaStyle = () => {
+    if (!currentMedia) return {};
+    
+    // Vertical videos (Shorts) need proper handling
+    // YouTube shows black bars on sides for vertical videos rather than cropping
+    return {
+      maxWidth: '100%',
+      maxHeight: '100%',
+      margin: 'auto'
+    };
+  };
+  
   return (
     <div className="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900 mx-auto">
-      {/* Video thumbnail or preview */}
-      {media.length > 0 && (
+      {/* Video thumbnail or preview - YouTube uses 16:9 aspect ratio */}
+      {media.length > 0 ? (
         <div className="relative">
-          <div className="aspect-video bg-black">
+          <div className="w-full" style={getMediaContainerStyle()}>
             {currentMedia && isVideo(currentMedia) ? (
               <video 
                 src={currentMedia.url} 
-                className="w-full h-full object-cover"
+                style={getMediaStyle()}
+                className="bg-black"
                 autoPlay
                 loop
                 muted
@@ -24,7 +62,8 @@ const YouTubePreview = ({ account, caption, media, selectedMediaIndex, isVideo, 
               <img 
                 src={currentMedia ? currentMedia.url : ''} 
                 alt="Video thumbnail" 
-                className="w-full h-full object-cover"
+                style={getMediaStyle()}
+                className="bg-black"
               />
             )}
             
@@ -74,6 +113,10 @@ const YouTubePreview = ({ account, caption, media, selectedMediaIndex, isVideo, 
             )}
           </div>
         </div>
+      ) : (
+        <div className="aspect-video bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
+          <FaImage className="h-10 w-10 text-gray-400 dark:text-gray-600" />
+        </div>
       )}
       
       {/* YouTube video info */}
@@ -105,13 +148,6 @@ const YouTubePreview = ({ account, caption, media, selectedMediaIndex, isVideo, 
           </div>
         </div>
       </div>
-      
-      {/* No media placeholder */}
-      {media.length === 0 && (
-        <div className="aspect-video bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
-          <FaImage className="h-10 w-10 text-gray-400 dark:text-gray-600" />
-        </div>
-      )}
     </div>
   );
 };
