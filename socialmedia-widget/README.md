@@ -1,12 +1,42 @@
-# React + Vite
+# Social Media Widget
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A customizable React component for displaying social media links.
 
-Currently, two official plugins are available:
+## Installation
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```bash
+npm install socialmedia-widget
+# or
+yarn add socialmedia-widget
+```
 
-## Expanding the ESLint configuration
+## Usage
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```jsx
+import { SocialMediaWidget } from 'socialmedia-widget';
+
+function App() {
+  return (
+    <div>
+      <SocialMediaWidget 
+        links={[
+          { platform: 'twitter', url: 'https://twitter.com/yourusername' },
+          { platform: 'facebook', url: 'https://facebook.com/yourusername' },
+          { platform: 'instagram', url: 'https://instagram.com/yourusername' }
+        ]}
+      />
+    </div>
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| links | Array | An array of social media link objects |
+| theme | String | Optional theme for the widget (light/dark) |
+
+## License
+
+MIT

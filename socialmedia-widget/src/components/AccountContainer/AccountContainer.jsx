@@ -4,9 +4,9 @@ import { useTheme } from '../../theme/ThemeContext';
 import AddAccountButton from './AddAccountButton';
 
 /**
- * AccountsContainer component displays a scrollable/expandable container for AccountCard components
+ * AccountContainer component displays a scrollable/expandable container for AccountCard components
  */
-const AccountsContainer = ({ 
+const AccountContainer = ({ 
   children, 
   title,
   hideTitle = false, // New prop to hide the title
@@ -192,7 +192,7 @@ const AccountsContainer = ({
         <p className="text-gray-600 text-sm italic text-center mb-4">Click the X button to remove accounts</p>
       )}
       
-      {/* Accounts Container */}
+      {/* Account Container */}
       <div className={containerClass} ref={containerRef}>
         {renderedChildren}
       </div>
@@ -209,7 +209,7 @@ const AccountsContainer = ({
   );
 };
 
-AccountsContainer.propTypes = {
+AccountContainer.propTypes = {
   children: PropTypes.node.isRequired,
   title: PropTypes.string,
   hideTitle: PropTypes.bool,
@@ -227,4 +227,4 @@ AccountsContainer.propTypes = {
   size: PropTypes.oneOf(['sm', 'md', 'lg'])
 };
 
-export default AccountsContainer;
+export default AccountContainer;

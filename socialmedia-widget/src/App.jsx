@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTheme } from './theme/ThemeContext'
-import { AccountCard, AccountsContainer, availablePlatforms, Calendar, PostEditor } from './components'
+import { AccountCard, AccountContainer, availablePlatforms, Calendar, PostEditor } from './components'
 import CalendarEvent from './components/Calendar/CalendarEvent'
 import { FaMapPin, FaPoll } from 'react-icons/fa';
 
@@ -342,7 +342,7 @@ function App() {
             onSaveDraft={handleSaveDraft}
             customMediaInputs={customMediaOptions} // Pass custom media inputs
             accountSelector={
-              <AccountsContainer 
+              <AccountContainer 
                 maxRows={1} 
                 expandBreakpoint="768px"
                 itemsPerRow={6}
@@ -366,7 +366,7 @@ function App() {
                     platform={account.platform}
                   />
                 ))}
-              </AccountsContainer>
+              </AccountContainer>
             }
           />
         </div>
