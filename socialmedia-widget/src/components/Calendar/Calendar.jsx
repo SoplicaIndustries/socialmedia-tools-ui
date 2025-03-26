@@ -18,7 +18,8 @@ const Calendar = ({
   initialView = 'month',
   events = [], 
   maxHeight = 'none',
-  compactWeekView = false
+  compactWeekView = false,
+  onEventUpdate = null, // New prop for handling event updates
 }) => {
   const theme = useTheme();
   const [currentDate, setCurrentDate] = useState(new Date(initialDate));
@@ -303,9 +304,26 @@ const Calendar = ({
     return weekdays;
   };
 
+  // Handle event updates from drag and drop
+  const handleEventUpdate = (eventId, newStartTime, newEndTime) => {
+    if (onEventUpdate) {
+      const eventToUpdate = standardizedEvents.find(event => event.id === eventId);
+      if (eventToUpdate) {
+        // Calculate duration to maintain same duration if event has end time
+        let updatedEndTime = newEndTime;
+        if (eventToUpdate.endTime && !newEndTime) {
+          const duration = eventToUpdate.endTime - eventToUpdate.startTime;
+          updatedEndTime = new Date(new Date(newStartTime).getTime() + duration);
+        }
+        
+        onEventUpdate(eventId, new Date(newStartTime), updatedEndTime);
+      }
+    }
+  };
+
   // Handle event click
   const handleEventClick = (event) => {
-    alert(`Event: ${event.title}\nTime: ${new Date(event.startTime).toLocaleTimeString()} - ${new Date(event.endTime).toLocaleTimeString()}\n${event.description || ''}`);
+    alert(`Event: ${event.title}\nTime: ${new Date(event.startTime).toLocaleTimeString()} - ${event.endTime ? new Date(event.endTime).toLocaleTimeString() : ''}\n${event.description || ''}`);
   };
 
   return (
@@ -345,6 +363,7 @@ const Calendar = ({
             highlightToday={highlightToday}
             onDayClick={handleDayClick}
             onEventClick={handleEventClick}
+            onEventUpdate={handleEventUpdate} // Pass the handler down
           />
         )}
         
@@ -356,6 +375,7 @@ const Calendar = ({
             onDayClick={handleDayClick}
             onEventClick={handleEventClick}
             compactView={compactWeekView}
+            onEventUpdate={handleEventUpdate} // Pass the handler down
           />
         )}
       </div>
@@ -381,6 +401,7 @@ Calendar.propTypes = {
   })),
   maxHeight: PropTypes.string,
   compactWeekView: PropTypes.bool,
+  onEventUpdate: PropTypes.func, // Add prop type for the new prop
 };
 
 export default Calendar;

@@ -21,8 +21,8 @@ function App() {
   ]);
   const [isCompactView, setIsCompactView] = useState(false);
   
-  // Calendar events data using CalendarEvent class - social media posting schedule
-  const calendarEvents = [
+  // State for events and rescheduling modal
+  const [calendarEventsList, setCalendarEventsList] = useState([
     new CalendarEvent({
       id: "event-1",
       // No title, just description
@@ -94,7 +94,87 @@ function App() {
       color: "#E4405F", // Instagram color
       services: ['instagram']
     })
-  ];
+  ]);
+  
+  // State for rescheduling modal
+  const [reschedulingEvent, setReschedulingEvent] = useState(null);
+  const [newEventTime, setNewEventTime] = useState(null);
+
+  // Function to handle event update requests (from drag & drop)
+  const handleEventUpdate = (eventId, newStartTime, newEndTime) => {
+    // Find the event that's being rescheduled
+    const eventToUpdate = calendarEventsList.find(event => event.id === eventId);
+    
+    if (eventToUpdate) {
+      // Set the state to show the confirmation modal
+      setReschedulingEvent(eventToUpdate);
+      setNewEventTime({
+        startTime: newStartTime,
+        endTime: newEndTime
+      });
+    }
+  };
+
+  // Function to confirm rescheduling
+  const confirmReschedule = () => {
+    if (!reschedulingEvent || !newEventTime) return;
+    
+    // Create a copy of the events list
+    const updatedEvents = calendarEventsList.map(event => {
+      if (event.id === reschedulingEvent.id) {
+        // Create a new event with updated times
+        return new CalendarEvent({
+          ...event,
+          startTime: newEventTime.startTime,
+          endTime: newEventTime.endTime
+        });
+      }
+      return event;
+    });
+    
+    // Update the events list
+    setCalendarEventsList(updatedEvents);
+    
+    // Create and dispatch a custom event for potential API integration
+    const eventDetails = {
+      eventId: reschedulingEvent.id,
+      oldStartTime: reschedulingEvent.startTime,
+      oldEndTime: reschedulingEvent.endTime,
+      newStartTime: newEventTime.startTime,
+      newEndTime: newEventTime.endTime
+    };
+    
+    // Dispatch custom event for API integration
+    const rescheduledEvent = new CustomEvent('event-rescheduled', { 
+      detail: eventDetails
+    });
+    document.dispatchEvent(rescheduledEvent);
+    
+    // Log the event details
+    console.log('Event rescheduled:', eventDetails);
+    
+    // Close the modal
+    closeRescheduleModal();
+  };
+
+  // Function to cancel rescheduling
+  const closeRescheduleModal = () => {
+    setReschedulingEvent(null);
+    setNewEventTime(null);
+  };
+
+  // Format date and time for display
+  const formatDateTime = (date) => {
+    if (!date) return '';
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
 
   // Example theme info
   const themeInfo = {
@@ -182,7 +262,7 @@ function App() {
     });
     
     // Add to calendar events
-    const updatedEvents = [...calendarEvents, newEvent];
+    const updatedEvents = [...calendarEventsList, newEvent];
     
     // In a real app, you'd update state here
     // setCalendarEvents(updatedEvents);
@@ -320,9 +400,10 @@ function App() {
             onDateClick={handleDateClick}
             highlightToday={true}
             startWeekOnSunday={true}
-            events={calendarEvents}
+            events={calendarEventsList}
             maxHeight="600px"
             compactWeekView={isCompactView} // Pass the compact view toggle
+            onEventUpdate={handleEventUpdate}
           />
         </div>
         
@@ -333,6 +414,63 @@ function App() {
         )}
       </section>
       
+      {/* Rescheduling Confirmation Modal */}
+      {reschedulingEvent && newEventTime && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full">
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
+              Reschedule Event
+            </h3>
+            
+            <div className="mb-4">
+              <p className="font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {reschedulingEvent.title || reschedulingEvent.description}
+              </p>
+              
+              <div className="space-y-3 text-sm">
+                <div className="flex">
+                  <span className="w-20 font-medium text-gray-500 dark:text-gray-400">From:</span>
+                  <span className="text-gray-700 dark:text-gray-300">
+                    {formatDateTime(reschedulingEvent.startTime)}
+                  </span>
+                </div>
+                
+                <div className="flex">
+                  <span className="w-20 font-medium text-gray-500 dark:text-gray-400">To:</span>
+                  <span className="text-gray-700 dark:text-gray-300">
+                    {formatDateTime(newEventTime.startTime)}
+                  </span>
+                </div>
+                
+                {reschedulingEvent.services?.length > 0 && (
+                  <div className="flex">
+                    <span className="w-20 font-medium text-gray-500 dark:text-gray-400">Platforms:</span>
+                    <span className="text-gray-700 dark:text-gray-300 capitalize">
+                      {reschedulingEvent.services.join(', ')}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
+              <button 
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={closeRescheduleModal}
+              >
+                Cancel
+              </button>
+              
+              <button 
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                onClick={confirmReschedule}
+              >
+                Reschedule
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
