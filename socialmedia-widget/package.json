@@ -1,6 +1,7 @@
 {
   "name": "socialmedia-tools-ui",
-  "version": "0.1.0",
+  "homepage": "https://SoplicaIndustries.github.io/socialmedia-tools-ui/",
+  "version": "0.1.2",
   "description": "A customizable social media tools UI for React applications",
   "private": false,
   "type": "module",
@@ -15,7 +16,8 @@
     "build": "vite build",
     "prepublishOnly": "npm run build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "prop-types": "^15.8.1",
@@ -32,6 +34,7 @@
     "eslint": "^9.21.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
+    "gh-pages": "^6.3.0",
     "globals": "^15.15.0",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
@@ -48,6 +51,6 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SoplicaIndustries/react-sm-lib.git"
+    "url": "git+https://github.com/SoplicaIndustries/socialmedia-tools-ui.git"
   }
 }

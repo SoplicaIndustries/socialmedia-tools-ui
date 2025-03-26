@@ -128,7 +128,7 @@ Context provider for theme customization.
 ### useTheme
 
 ```javascript
-import { useTheme } from 'socialmedia-widget';
+import { useTheme } from 'socialmedia-tools-ui';
 
 function MyComponent() {
   const theme = useTheme();
@@ -146,7 +146,7 @@ function MyComponent() {
 ### Constructor
 
 ```javascript
-import { CalendarEvent } from 'socialmedia-widget';
+import { CalendarEvent } from 'socialmedia-tools-ui';
 
 const event = new CalendarEvent({
   id: 'unique-id',

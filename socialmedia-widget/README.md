@@ -1,7 +1,7 @@
 # Social Media Widget
 
-[![npm version](https://img.shields.io/npm/v/socialmedia-widget.svg)](https://www.npmjs.com/package/socialmedia-widget)
-[![license](https://img.shields.io/npm/l/socialmedia-widget.svg)](https://github.com/yourusername/react-sm-lib/blob/main/LICENSE)
+[![npm version](https://img.shields.io/npm/v/socialmedia-tools-ui.svg)](https://www.npmjs.com/package/socialmedia-tools-ui)
+[![license](https://img.shields.io/npm/l/socialmedia-tools-ui.svg)](https://github.com/yourusername/react-sm-lib/blob/main/LICENSE)
 
 A comprehensive React component library for social media integration, scheduling, and content management.
 
@@ -16,9 +16,9 @@ A comprehensive React component library for social media integration, scheduling
 ## Installation
 
 ```bash
-npm install socialmedia-widget
+npm install socialmedia-tools-ui
 # or
-yarn add socialmedia-widget
+yarn add socialmedia-tools-ui
 ```
 
 ## Quick Start
@@ -31,7 +31,7 @@ import {
   Calendar, 
   PostEditor,
   ThemeProvider 
-} from 'socialmedia-widget';
+} from 'socialmedia-tools-ui';
 
 function App() {
   return (
@@ -91,7 +91,7 @@ export default App;
 Display information about a social media account with key stats.
 
 ```jsx
-import { AccountCard } from 'socialmedia-widget';
+import { AccountCard } from 'socialmedia-tools-ui';
 
 <AccountCard 
   platform="twitter"
@@ -111,7 +111,7 @@ import { AccountCard } from 'socialmedia-widget';
 A container component for organizing multiple AccountCard components.
 
 ```jsx
-import { AccountContainer, AccountCard } from 'socialmedia-widget';
+import { AccountContainer, AccountCard } from 'socialmedia-tools-ui';
 
 <AccountContainer title="My Social Accounts" layout="grid">
   <AccountCard platform="twitter" username="twitteruser" />
@@ -125,7 +125,7 @@ import { AccountContainer, AccountCard } from 'socialmedia-widget';
 A calendar component for scheduling and visualizing social media posts.
 
 ```jsx
-import { Calendar } from 'socialmedia-widget';
+import { Calendar } from 'socialmedia-tools-ui';
 
 <Calendar 
   events={[
@@ -148,7 +148,7 @@ import { Calendar } from 'socialmedia-widget';
 A rich text editor for creating social media posts with platform-specific features.
 
 ```jsx
-import { PostEditor } from 'socialmedia-widget';
+import { PostEditor } from 'socialmedia-tools-ui';
 
 <PostEditor 
   platforms={['twitter', 'facebook', 'instagram']}
@@ -164,7 +164,7 @@ import { PostEditor } from 'socialmedia-widget';
 The library supports comprehensive theming through React Context.
 
 ```jsx
-import { ThemeProvider } from 'socialmedia-widget';
+import { ThemeProvider } from 'socialmedia-tools-ui';
 
 // Custom theme
 const darkTheme = {
@@ -209,7 +209,7 @@ function App() {
 Create structured calendar events for your social media schedule:
 
 ```jsx
-import { Calendar } from 'socialmedia-widget';
+import { Calendar } from 'socialmedia-tools-ui';
 
 // Create events
 const events = [
@@ -254,7 +254,7 @@ const events = [
 ### Available Social Media Platforms
 
 ```jsx
-import { availablePlatforms } from 'socialmedia-widget';
+import { availablePlatforms } from 'socialmedia-tools-ui';
 
 console.log(availablePlatforms); 
 // ['twitter', 'facebook', 'instagram', 'linkedin', 'youtube', 'tiktok', 'pinterest']

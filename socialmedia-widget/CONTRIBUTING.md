@@ -26,8 +26,8 @@ We use GitHub to host code, to track issues and feature requests, as well as acc
 # Clone your fork
 git clone https://github.com/your-username/react-sm-lib.git
 
-# Navigate to the socialmedia-widget directory
-cd react-sm-lib/socialmedia-widget
+# Navigate to the socialmedia-tools-ui directory
+cd react-sm-lib/socialmedia-tools-ui
 
 # Install dependencies
 npm install
