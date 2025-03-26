@@ -4,7 +4,7 @@ import { resolve } from 'path';
 import dts from 'vite-plugin-dts';
 
 export default defineConfig({
-  base: 'socialmedia-tools-ui',
+  base: '/socialmedia-tools-ui',
   plugins: [
     react(),
     dts({ include: ['src'] }),
